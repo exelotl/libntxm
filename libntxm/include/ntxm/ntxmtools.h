@@ -41,13 +41,21 @@
  * Some tools for ensuring there are no memory leaks and buffered file operations
  */
 
+#if defined(ARM9) && defined(DEBUG)
 void *my_malloc(size_t size);
 void my_free(void *ptr);
 void my_start_malloc_invariant(void);
 void my_end_malloc_invariant(void);
 void *my_memalign(size_t blocksize, size_t bytes);
-void *my_memset(void *s, int c, u32 n);
-char *my_strncpy(char *dest, const char *src, u32 n);
+#define my_dprintf iprintf
+#else
+#define my_malloc malloc
+#define my_free free
+#define my_start_malloc_invariant() {}
+#define my_end_malloc_invariant() {}
+#define my_memalign memalign
+static inline void my_dprintf(...) {}
+#endif /* ARM9 && DEBUG */
 bool my_file_exists(const char *name);
 
 inline s32 my_clamp(s32 val, s32 min, s32 max)

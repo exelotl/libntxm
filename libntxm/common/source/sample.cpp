@@ -73,7 +73,7 @@ inline u32 linear_freq_table_lookup(u32 note)
 			//	     );
 			#endif
 			#ifdef ARM9
-			iprintf("%u %u\n",octaveoffset,relnote);
+			my_dprintf("%u %u\n",octaveoffset,relnote);
 			#endif
 			return linear_freq_table[relnote] >> octaveoffset;
 		}
@@ -119,7 +119,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 
 	if(!wav.load(filename))
 	{
-		printf("WAV loading failed\n");
+		my_dprintf("WAV loading failed\n");
 		*_success = false;
 		return;
 	}
@@ -158,7 +158,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 	{
 		if(!convertStereoToMono())
 		{
-			printf("Stereo 2 Mono conversion failed\n");
+			my_dprintf("Stereo 2 Mono conversion failed\n");
 			*_success = false;
 			return;
 		}
@@ -601,7 +601,7 @@ void Sample::reverse(u32 startsample, u32 endsample)
 	void *testmem = malloc( (is_16_bit?2:1) * length);
 	if(testmem == NULL)
 	{
-		iprintf("Not enough memory for reversing\n");
+		my_dprintf("Not enough memory for reversing\n");
 		return;
 	}
 	else
@@ -827,7 +827,7 @@ bool Sample::convertStereoToMono(void)
 	void *_tmpbuf = malloc(size);
 	if(!_tmpbuf)
 	{
-		printf("not enough ram for stereo 2 mono conversion\n");
+		my_dprintf("not enough ram for stereo 2 mono conversion\n");
 		return false;
 	}
 

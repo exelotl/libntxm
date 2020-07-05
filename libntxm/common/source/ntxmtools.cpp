@@ -38,10 +38,10 @@
 #include "ntxm/ntxmtools.h"
 #include <sys/statvfs.h>
 
-s32 unfreed_malloc_calls = 0;
-
 #ifdef ARM9
 
+#ifdef DEBUG
+s32 unfreed_malloc_calls = 0;
 u32 remaining_bytes = 0;
 
 void *my_malloc(size_t size)
@@ -59,7 +59,7 @@ void my_free(void *ptr)
 		unfreed_malloc_calls--;
 		free(ptr);
 	} else {
-		iprintf("Nullpointer free detected!\n");
+		my_dprintf("Nullpointer free detected!\n");
 	}
 }
 
@@ -71,7 +71,7 @@ void my_start_malloc_invariant(void)
 void my_end_malloc_invariant(void)
 {
 	if(unfreed_malloc_calls != 0) {
-		iprintf("Allocation error! Unfreed mallocs: %d\n", (int)unfreed_malloc_calls);
+		my_dprintf("Allocation error! Unfreed mallocs: %d\n", (int)unfreed_malloc_calls);
 	}
 }
 
@@ -79,40 +79,14 @@ void *my_memalign(size_t blocksize, size_t bytes)
 {
 	void *buf = memalign(blocksize, bytes);
 	if( ((u32)buf & blocksize) != 0) {
-		iprintf("Memalign error! %p ist not %u-aligned\n", buf, (u16)blocksize);
+		my_dprintf("Memalign error! %p ist not %u-aligned\n", buf, (u16)blocksize);
 		return 0;
 	} else {
 		unfreed_malloc_calls++;
 		return buf;
 	}
 }
-
-#endif
-
-// Reinventing the wheel to save arm7 binary size
-void *my_memset(void *s, int c, u32 n)
-{
-	u8 *t = (u8*)s;
-	for(u32 i=0; i<n; ++i) {
-		t[i] = c;
-	}
-	return s;
-}
-
-char *my_strncpy(char *dest, const char *src, u32 n)
-{
-	u32 i=0;
-	while((src[i] != 0) && (i < n)) {
-		dest[i] = src[i];
-		i++;
-	}
-	if((i<n)&&(src[i]==0)) {
-		dest[i] = 0;
-	}
-	return dest;
-}
-
-#ifdef ARM9
+#endif /* DEBUG */
 
 bool my_file_exists(const char *filename)
 {
@@ -124,11 +98,11 @@ bool my_file_exists(const char *filename)
 		fclose(f);
 		res = true;
 	}
-	
+
 	return res;
 }
 
-#endif
+#endif /* ARM9 */
 
 u32 my_getUsedRam(void)
 {
@@ -137,12 +111,14 @@ u32 my_getUsedRam(void)
 	return info.usmblks + info.uordblks; 
 }
 
+#ifdef ARM9
+
 u32 my_getFreeDiskSpace(void)
 {
 	struct statvfs fiData;
 
 	if((statvfs("/",&fiData)) < 0 ) {
-		iprintf("stat failed!\n");
+		my_dprintf("stat failed!\n");
 		return 0;
 	} else {
 		return fiData.f_bsize*fiData.f_bfree;
@@ -157,3 +133,5 @@ u32 my_getFileSize(const char *filename)
 	fclose(file);
 	return filesize;
 }
+
+#endif

@@ -75,14 +75,14 @@ u16 ModTransport::load(const char *filename, Song **_song)
 	if(filesize > MAX_MOD_FILESIZE)
 	{
 		fclose(modfile);
-		iprintf("file too big for ram\n");
+		my_dprintf("file too big for ram\n");
 		return MOD_TRANSPORT_FILE_TOO_BIG_FOR_RAM;
 	}
 	
 	if(filesize == 0)
 	{
 		fclose(modfile);
-		iprintf("0-byte file!\n");
+		my_dprintf("0-byte file!\n");
 		return MOD_TRANSPORT_FILE_ZERO_BYTE;
 	}
 	
@@ -94,7 +94,7 @@ u16 ModTransport::load(const char *filename, Song **_song)
 	char song_name[20];
 	calloc(song_name, 20, 1);
 	fread(song_name, 1, 20, modfile);
-	iprintf("It's called %s\n", song_name);
+	my_dprintf("It's called %s\n", song_name);
 	
 	song->setName(song_name);
 	
@@ -161,7 +161,7 @@ u16 ModTransport::load(const char *filename, Song **_song)
 	
 	else
 		
-		iprintf("Unsupported format!\n");
+		my_dprintf("Unsupported format!\n");
 	
 	//
 	// Read Patterns
@@ -199,7 +199,7 @@ u16 ModTransport::load(const char *filename, Song **_song)
 	for(u8 smp=0; smp<31; ++smp)
 		free(sample[smp]);
 	
-	iprintf("MOD Loaded.\n");
+	my_dprintf("MOD Loaded.\n");
 	
 	//
 	// Finish up

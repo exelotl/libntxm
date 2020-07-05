@@ -7,6 +7,7 @@
 
 #include <nds/ndstypes.h>
 #include "ntxm/fifocommand.h"
+#include "ntxm/ntxmtools.h"
 
 void (*onUpdateRow)(u16 row) = 0;
 void (*onStop)(void) = 0;
@@ -62,9 +63,11 @@ void CommandRecvHandler(int bytes, void *user_data) {
     fifoGetDatamsg(FIFO_NTXM, bytes, (u8*)&msg);
 
     switch(msg.commandType) {
+#ifdef DEBUG
         case DBG_OUT: // TODO it's not safe to do this in an interrupt handler
-            iprintf(msg.dbgOut.msg);
+            my_dprintf(msg.dbgOut.msg);
             break;
+#endif
 
         case UPDATE_ROW:
             RecvCommandUpdateRow(&msg.updateRow);

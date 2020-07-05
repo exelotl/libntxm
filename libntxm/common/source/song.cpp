@@ -66,8 +66,8 @@ Song::Song(u8 _speed, u8 _bpm, u8 _channels)
 	pattern_order_table = (u8*)malloc(sizeof(u8)*MAX_POT_LENGTH);
 	instruments = (Instrument**)calloc(1, sizeof(Instrument*)*MAX_INSTRUMENTS);
 	name = (char*)malloc(MAX_SONG_NAME_LENGTH+1);
-	my_memset(name, 0, MAX_SONG_NAME_LENGTH+1);
-	my_strncpy(name, "unnamed", MAX_SONG_NAME_LENGTH);
+	memset(name, 0, MAX_SONG_NAME_LENGTH+1);
+	strncpy(name, "unnamed", MAX_SONG_NAME_LENGTH);
 	
 	for(u16 i=0; i<MAX_PATTERNS; ++i) {
 		patternlengths[i] = 0;
@@ -85,7 +85,7 @@ Song::Song(u8 _speed, u8 _bpm, u8 _channels)
 	n_patterns = 0;
 	potsize = 0;
 
-	my_memset(channels_muted, false, MAX_CHANNELS * sizeof(bool));
+	memset(channels_muted, false, MAX_CHANNELS * sizeof(bool));
 	
 	// Init pattern array
 	patterns = (Cell***)malloc(sizeof(Cell**)*MAX_PATTERNS);
@@ -320,7 +320,7 @@ void Song::resizePattern(u8 ptn, u16 newlength)
 
 // The most important function
 void Song::setName(const char *_name) {
-	my_strncpy(name, _name, MAX_SONG_NAME_LENGTH);
+	strncpy(name, _name, MAX_SONG_NAME_LENGTH);
 }
 
 #endif

@@ -79,6 +79,7 @@ static void RecvCommandPatternLoop(PatternLoopCommand *c) {
 
 void CommandDbgOut(const char *formatstr, ...)
 {
+#ifdef DEBUG
     NTXMFifoMessage command;
     command.commandType = DBG_OUT;
 
@@ -120,6 +121,7 @@ void CommandDbgOut(const char *formatstr, ...)
     va_end(marker);
 
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
+#endif
 }
 
 void CommandUpdateRow(u16 row)

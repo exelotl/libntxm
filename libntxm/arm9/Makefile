@@ -15,7 +15,10 @@ include $(DEVKITARM)/ds_rules
 # all directories are relative to this makefile
 #---------------------------------------------------------------------------------
 BUILD		:=	build
-SOURCES		:=	source  
+ifeq ($(DEBUG),true)
+BUILD		:=	build-debug
+endif
+SOURCES		:=	source ../common/source
 INCLUDES	:=	include ../include
 DATA		:=
 
@@ -37,13 +40,22 @@ LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBDIRS :=      $(LIBNDS)
 
+ifeq ($(DEBUG),true)
+CFLAGS	+=	-DDEBUG
+CXXFLAGS	+=	-DDEBUG
+endif
+
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
 #---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
+ifeq ($(DEBUG),true)
+export OUTPUT	:=	$(CURDIR)/lib/$(TARGET)9d.a
+else
 export OUTPUT	:=	$(CURDIR)/lib/$(TARGET)9.a
+endif
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -90,7 +102,7 @@ $(BUILD): lib
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) lib
+	@rm -fr build-debug build lib
 
 #---------------------------------------------------------------------------------
 else

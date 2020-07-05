@@ -31,6 +31,7 @@
  ***** END LICENSE BLOCK *****/
 
 #include <stdlib.h>
+#include <string.h>
 
 extern "C" {
   #include "ntxm/demokit.h"
@@ -78,10 +79,10 @@ void Player::setSong(Song *_song)
 	initState();
 
 	// Init fading
-	my_memset(state.channel_fade_active, 0, sizeof(state.channel_fade_active));
-	my_memset(state.channel_fade_ms, 0, sizeof(state.channel_fade_ms));
-	my_memset(state.channel_volume, 0, sizeof(state.channel_volume));
-	my_memset(state.channel_fade_target_volume, 0, sizeof(state.channel_fade_target_volume));
+	memset(state.channel_fade_active, 0, sizeof(state.channel_fade_active));
+	memset(state.channel_fade_ms, 0, sizeof(state.channel_fade_ms));
+	memset(state.channel_volume, 0, sizeof(state.channel_volume));
+	memset(state.channel_fade_target_volume, 0, sizeof(state.channel_fade_target_volume));
 }
 
 // Set the current pattern to looping
@@ -94,9 +95,9 @@ void Player::play(u8 potpos, u16 row, bool loop)
 {
 	// Mark all channels inactive
 	if(state.playing == false) {
-		my_memset(state.channel_active, 0, sizeof(state.channel_active));
-		my_memset(state.channel_ms_left, 0, sizeof(state.channel_ms_left));
-		my_memset(state.channel_loop, 0, sizeof(state.channel_loop));
+		memset(state.channel_active, 0, sizeof(state.channel_active));
+		memset(state.channel_ms_left, 0, sizeof(state.channel_ms_left));
+		memset(state.channel_loop, 0, sizeof(state.channel_loop));
 	}
 
 	state.potpos = potpos;
@@ -689,18 +690,18 @@ void Player::initState(void)
 	state.songloop = true;
 	state.waitrow = false;
 	state.patternloop = false;
-	my_memset(state.channel_active, 0, sizeof(state.channel_active));
-	my_memset(state.channel_ms_left, 0, sizeof(state.channel_ms_left));
-	my_memset(state.channel_note, EMPTY_NOTE, sizeof(state.channel_note));
-	my_memset(state.channel_instrument, NO_INSTRUMENT, sizeof(state.channel_instrument));
-	my_memset(state.channel_effect, NO_EFFECT, sizeof(state.channel_effect));
-	my_memset(state.channel_effect_param, NO_EFFECT_PARAM, sizeof(state.channel_effect_param));
-	my_memset(state.channel_fade_active, 0, sizeof(state.channel_fade_active));
-	my_memset(state.channel_fade_ms, 0, sizeof(state.channel_fade_ms));
-	my_memset(state.channel_fade_target_volume, 0, sizeof(state.channel_fade_target_volume));
-	my_memset(state.channel_volume, 0, sizeof(state.channel_volume));
-	my_memset(state.channel_env_vol, 63, sizeof(state.channel_env_vol));
-	my_memset(state.channel_fade_vol, 127, sizeof(state.channel_fade_vol));
+	memset(state.channel_active, 0, sizeof(state.channel_active));
+	memset(state.channel_ms_left, 0, sizeof(state.channel_ms_left));
+	memset(state.channel_note, EMPTY_NOTE, sizeof(state.channel_note));
+	memset(state.channel_instrument, NO_INSTRUMENT, sizeof(state.channel_instrument));
+	memset(state.channel_effect, NO_EFFECT, sizeof(state.channel_effect));
+	memset(state.channel_effect_param, NO_EFFECT_PARAM, sizeof(state.channel_effect_param));
+	memset(state.channel_fade_active, 0, sizeof(state.channel_fade_active));
+	memset(state.channel_fade_ms, 0, sizeof(state.channel_fade_ms));
+	memset(state.channel_fade_target_volume, 0, sizeof(state.channel_fade_target_volume));
+	memset(state.channel_volume, 0, sizeof(state.channel_volume));
+	memset(state.channel_env_vol, 63, sizeof(state.channel_env_vol));
+	memset(state.channel_fade_vol, 127, sizeof(state.channel_fade_vol));
 	state.playing_single_sample = false;
 	state.single_sample_ms_remaining = 0;
 	state.single_sample_channel = 0;
@@ -711,8 +712,8 @@ void Player::initEffState(void)
 	effstate.pattern_loop_begin = 0;
 	effstate.pattern_loop_count = 0;
 	effstate.pattern_loop_jump_now = false;
-	my_memset(effstate.channel_setvol_requested, false, sizeof(effstate.channel_setvol_requested));
-	my_memset(effstate.channel_last_slidespeed, 0, sizeof(effstate.channel_last_slidespeed));
+	memset(effstate.channel_setvol_requested, false, sizeof(effstate.channel_setvol_requested));
+	memset(effstate.channel_last_slidespeed, 0, sizeof(effstate.channel_last_slidespeed));
 	effstate.pattern_break_requested = false;
 	effstate.pattern_break_row = 0;
 }

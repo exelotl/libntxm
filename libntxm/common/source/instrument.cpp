@@ -50,7 +50,7 @@ Instrument::Instrument(const char *_name, u8 _type, u8 _volume)
 {
 	name = (char*)calloc(MAX_INST_NAME_LENGTH+1, 1);
 	
-	my_strncpy(name, _name, MAX_INST_NAME_LENGTH);
+	strncpy(name, _name, MAX_INST_NAME_LENGTH);
 	
 	note_samples = (u8*)calloc(sizeof(u8)*MAX_OCTAVE*12, 1);
 	
@@ -63,7 +63,7 @@ Instrument::Instrument(const char *_name, Sample *_sample, u8 _volume)
 {
 	name = (char*)malloc(MAX_INST_NAME_LENGTH+1);
 	for(u16 i=0; i<MAX_INST_NAME_LENGTH+1; ++i) name[i] = '\0';
-	my_strncpy(name, _name, MAX_INST_NAME_LENGTH);
+	strncpy(name, _name, MAX_INST_NAME_LENGTH);
 	
 	samples = (Sample**)calloc(1, sizeof(Sample*)*1);
 	samples[0] = _sample;
@@ -209,7 +209,7 @@ const char *Instrument::getName(void) {
 }
 
 void Instrument::setName(const char *_name) {
-	my_strncpy(name, _name, MAX_INST_NAME_LENGTH);
+	strncpy(name, _name, MAX_INST_NAME_LENGTH);
 }
 
 #endif
