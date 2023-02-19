@@ -27,6 +27,7 @@ export INCLUDE		:= 	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 # main targets
 #---------------------------------------------------------------------------------
 all: arm9/lib/$(TARGET)9d.a arm9/lib/$(TARGET)9.a arm7/lib/$(TARGET)7d.a arm7/lib/$(TARGET)7.a
+	@mkdir -p lib
 	@cp arm9/lib/$(TARGET)9d.a arm7/lib/$(TARGET)7d.a lib
 	@cp arm9/lib/$(TARGET)9.a arm7/lib/$(TARGET)7.a lib
 
