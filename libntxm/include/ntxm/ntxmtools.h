@@ -47,7 +47,11 @@ void my_free(void *ptr);
 void my_start_malloc_invariant(void);
 void my_end_malloc_invariant(void);
 void *my_memalign(size_t blocksize, size_t bytes);
+#ifdef BLOCKSDS
+#define my_dprintf printf
+#else
 #define my_dprintf iprintf
+#endif
 #else
 #define my_malloc malloc
 #define my_free free

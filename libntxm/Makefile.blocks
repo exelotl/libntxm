@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileContributor: Antonio Niño Díaz, 2023
+
+BLOCKSDS	?= /opt/blocksds/core
+BLOCKSDSEXT	?= /opt/blocksds/external
+
+# Build artifacts
+# ---------------
+
+INSTALLNAME	:= ntxm
+
+# Tools
+# -----
+
+MAKE		:= make
+RM		:= rm -rf
+CP		:= cp
+INSTALL	:= install
+
+# Verbose flag
+# ------------
+
+ifeq ($(VERBOSE),1)
+V		:=
+else
+V		:= @
+endif
+
+# Targets
+# -------
+
+.PHONY: all arm7 arm9 clean install
+
+all: arm9 arm7 arm9d arm7d
+
+arm9:
+	@+$(MAKE) -f Makefile.blocks.arm9 --no-print-directory DEBUG=false
+
+arm7:
+	@+$(MAKE) -f Makefile.blocks.arm7 --no-print-directory DEBUG=false
+
+arm9d:
+	@+$(MAKE) -f Makefile.blocks.arm9 --no-print-directory DEBUG=true
+
+arm7d:
+	@+$(MAKE) -f Makefile.blocks.arm7 --no-print-directory DEBUG=true
+
+clean:
+	@echo "  CLEAN"
+	@$(RM) $(VERSION_HEADER) lib build
+
+install: all
+	@echo "  INSTALL $(BLOCKSDSEXT)/$(INSTALLNAME)/"
+	$(V)$(RM) $(BLOCKSDSEXT)/$(INSTALLNAME)/
+	$(V)$(INSTALL) -d $(BLOCKSDSEXT)/$(INSTALLNAME)/
+	$(V)$(CP) -r include lib $(BLOCKSDSEXT)/$(INSTALLNAME)/
