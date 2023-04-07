@@ -41,8 +41,6 @@ extern "C" {
 #include "ntxm/song.h"
 #include "ntxm/player.h"
 
-#include "xtoa.h"
-
 #define MIN(x,y)	((x)<(y)?(x):(y))
 
 extern bool ntxm_recording;

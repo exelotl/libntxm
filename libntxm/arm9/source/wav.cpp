@@ -174,7 +174,7 @@ bool Wav::load(const char *filename)
 
 	audio_data_ = (u8*)malloc(data_chunk_size);
 	if(audio_data_ == 0) {
-		my_dprintf("Could not alloc mem for wav.\n");
+		my_dprintf("Could not alloc mem(%ld) for wav.\n", data_chunk_size);
 		fclose(fileh);
 		return false;
 	}

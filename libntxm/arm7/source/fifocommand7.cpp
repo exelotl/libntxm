@@ -11,10 +11,6 @@
 #include "ntxm/fifocommand.h"
 #include "ntxm/linear_freq_table.h"
 
-extern "C" {
-  #include "xtoa.h"
-}
-
 #include "ntxm/player.h"
 #include "ntxm/ntxm7.h"
 
@@ -89,34 +85,12 @@ void CommandDbgOut(const char *formatstr, ...)
     va_start(marker, formatstr);
 
     char *debugstr = cmd->msg;
-
-    for(u16 i=0;i<DEBUGSTRSIZE; ++i)
-        debugstr[i] = 0;
-
-    u16 strpos = 0;
-    char *outptr = debugstr;
-    char c;
-    while((strpos < DEBUGSTRSIZE-1)&&(formatstr[strpos]!=0))
-    {
-        c=formatstr[strpos];
-
-        if(c!='%') {
-            *outptr = c;
-            outptr++;
-        } else {
-            strpos++;
-            c=formatstr[strpos];
-            if(c=='d') {
-                long l = va_arg(marker, long);
-                outptr = ltoa(l, outptr, 10);
-            } else if(c=='u'){
-                unsigned long ul = va_arg(marker, unsigned long);
-                outptr = ultoa(ul, outptr, 10);
-            }
-        }
-
-        strpos++;
-    }
+#ifdef BLOCKSDS
+    vsnprintf(debugstr, DEBUGSTRSIZE-1, formatstr, marker);
+#else
+    vsniprintf(debugstr, DEBUGSTRSIZE-1, formatstr, marker);
+#endif
+    debugstr[DEBUGSTRSIZE-1] = 0;
 
     va_end(marker);
 
