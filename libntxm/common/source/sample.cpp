@@ -126,7 +126,9 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 
 	char *smpname = strrchr(filename, '/') + 1;
 	strncpy(name, smpname, SAMPLE_NAME_LENGTH);
+	name[SAMPLE_NAME_LENGTH] = 0;
 
+	if (sound_data) free(sound_data);
 	sound_data = wav.getAudioData();
 
 	calcRelnoteAndFinetune( wav.getSamplingRate() );
