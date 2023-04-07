@@ -45,7 +45,7 @@
 #include "ntxm/xm_transport.h"
 #include "ntxm/ntxmtools.h"
 
-char xmtransporterrors[][100] =
+const char *xmtransporterrors[] =
 	{"fat init failed",
 	"could not open file",
 	"not a valid xm file",
@@ -67,22 +67,6 @@ u16 XMTransport::load(const char *filename, Song **_song)
 	// Init
 	//
 	u32 filesize = my_getFileSize(filename);
-
-	// Check if the song fits into RAM
-	/// stat appears to be broken, TODO: fix
-	/*
-	u32 filesize = 0;
-	struct stat fstats;
-	if(stat(fd, &fstats) == 0)
-	{
-		filesize = fstats.st_size;
-	}
-	else
-	{
-		my_dprintf("stat failed!");
-		return XM_TRANSPORT_FILE_TOO_BIG_FOR_RAM;
-	}
-	*/
 	if(filesize == 0)
 	{
 		my_dprintf("0-byte file!\n");

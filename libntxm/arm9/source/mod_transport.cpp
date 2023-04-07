@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char modtransporterrors[][100] =
+const char *modtransporterrors[] =
 	{"fat init failed",
 	"could not open file",
 	"not a valid xm file",
