@@ -207,7 +207,7 @@ void Player::playSample(Sample *sample, u8 note, u8 volume, u8 channel)
 	// Set sample playing state
 	state.playing_single_sample = true;
 	state.single_sample_ms_remaining = length;
-	state.single_sample_channel = 0;
+	state.single_sample_channel = channel;
 
 	// Play
 	sample->play(note, volume, channel);
@@ -221,16 +221,21 @@ void Player::stopChannel(u8 channel)
 		channel = state.last_autochannel;
 	}
 
-	state.channel_fade_active[channel]        = 1;
-	state.channel_fade_ms[channel]            = FADE_OUT_MS;
-	state.channel_fade_target_volume[channel] = 0;
-
 	// Stop single sample if it's played on this channel
 	if((state.playing_single_sample == true) && (state.single_sample_channel == channel))
 	{
-		state.playing_single_sample = 0;
+		SCHANNEL_CR(channel) = 0;
+
+		state.playing_single_sample = false;
 		state.single_sample_ms_remaining = 0;
+
 		CommandSampleFinish();
+	}
+	else if(SCHANNEL_CR(channel) & BIT(31))
+	{
+		state.channel_fade_active[channel]        = 1;
+		state.channel_fade_ms[channel]            = FADE_OUT_MS;
+		state.channel_fade_target_volume[channel] = 0;
 	}
 }
 
@@ -252,9 +257,10 @@ void Player::playTimerHandler(void)
 		// Count down, and send signal when done
 		if(state.single_sample_ms_remaining < passed_time)
 		{
+			SCHANNEL_CR(state.single_sample_channel) = 0;
+
 			state.playing_single_sample = false;
 			state.single_sample_ms_remaining = 0;
-			state.single_sample_channel = 0;
 
 			CommandSampleFinish();
 		}

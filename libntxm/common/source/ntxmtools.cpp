@@ -135,3 +135,29 @@ u32 my_getFileSize(const char *filename)
 }
 
 #endif
+
+void ntxm_unsigned2signed_8(uint8_t *buffer, size_t count)
+{
+	uint32_t *buf32 = (uint32_t*) buffer;
+	size_t count32 = count >> 2;
+	size_t i;
+
+	for (i = 0; i < count32; i++) {
+		buf32[i] ^= 0x80808080;
+	}
+	i <<= 2;
+	for (; i < count; i++) {
+		buffer[i] ^= 0x80;
+	}
+}
+
+void ntxm_unsigned2signed_16(uint16_t *buffer, size_t count)
+{
+	uint32_t *buf32 = (uint32_t*) buffer;
+	size_t count32 = count >> 1;
+
+	for (size_t i = 0; i < count32; i++) {
+		buf32[i] ^= 0x80008000;
+	}
+	if (count & 1) buffer[count - 1] ^= 0x8000;
+}

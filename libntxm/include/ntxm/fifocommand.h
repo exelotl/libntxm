@@ -45,7 +45,7 @@ struct PlaySampleCommand
 /* Command parameters for stopping a sample */
 struct StopSampleSoundCommand
 {
-    int channel;
+    u8 channel;
 };
 
 /* Command parameters for starting to record from the microphone */

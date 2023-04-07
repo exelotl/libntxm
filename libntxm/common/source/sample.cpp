@@ -621,9 +621,7 @@ void Sample::reverse(u32 startsample, u32 endsample)
 		}
 
 		// Then copy it into the sample
-		for(s32 i=0;i<length;++i) {
-			sounddata[offset+i] = new_sounddata[i];
-		}
+		memcpy(sounddata + offset, new_sounddata, 2 * length);
 
 		free(new_sounddata);
 
@@ -638,9 +636,7 @@ void Sample::reverse(u32 startsample, u32 endsample)
 		}
 
 		// Then copy it into the sample
-		for(s32 i=0;i<length;++i) {
-			sounddata[offset+i] = new_sounddata[i];
-		}
+		memcpy(sounddata + offset, new_sounddata, length);
 
 		free(new_sounddata);
 	}
@@ -860,7 +856,7 @@ bool Sample::convertStereoToMono(void)
 
 		// Convert the sample down
 		s32 smp;
-		for(u32 i=0; i<size/2; ++i) {
+		for(u32 i=0; i<size; ++i) {
 			smp = src[2*i] + src[2*i+1];
 			tmpbuf[i] = smp / 2;
 		}

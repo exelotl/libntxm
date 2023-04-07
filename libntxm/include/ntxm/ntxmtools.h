@@ -75,4 +75,7 @@ u32 my_getFreeDiskSpace(void); // Gets free disk space in bytes
 u32 my_getUsedRam(void);
 u32 my_getFileSize(const char *filename);
 
+void ntxm_unsigned2signed_8(uint8_t *buffer, size_t count);
+void ntxm_unsigned2signed_16(uint16_t *buffer, size_t count);
+
 #endif

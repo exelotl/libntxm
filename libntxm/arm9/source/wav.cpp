@@ -185,10 +185,7 @@ bool Wav::load(const char *filename)
 
 	// Convert 8 bit samples from unsigned to signed
 	if(bit_per_sample == 8) {
-		s8* signed_data = (s8*)audio_data_;
-		for(u32 i=0; i<data_chunk_size; ++i) {
-			signed_data[i] = audio_data_[i] - 128;
-		}
+		ntxm_unsigned2signed_8(audio_data_, data_chunk_size);
 	}
 
 	// Finish up
@@ -248,13 +245,10 @@ bool Wav::save(const char *filename)
 
 	if(bit_per_sample == 8)
 	{
-		// Convert from unsigned to signed
-		s8 smp = 0;
-		for(u32 i=0; i<data_chunk_size; ++i)
-		{
-			smp = (s8)((s16)audio_data_[i] - 128);
-			fwrite( &smp, 1, 1, fileh );
-		}
+		// Convert from unsigned to signed and back
+		ntxm_unsigned2signed_8(audio_data_, data_chunk_size);
+		fwrite(audio_data_, data_chunk_size, 1, fileh);
+		ntxm_unsigned2signed_8(audio_data_, data_chunk_size);
 	}
 	else if(bit_per_sample == 16)
 	{
