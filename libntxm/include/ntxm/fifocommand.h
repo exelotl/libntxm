@@ -31,7 +31,8 @@ typedef enum {
     MIC_ON,
     MIC_OFF,
     PATTERN_LOOP,
-    SAMPLE_FINISH
+    SAMPLE_FINISH,
+    SET_STEREO_OUTPUT
 } NTXMFifoMessageType;
 
 struct PlaySampleCommand
@@ -95,6 +96,10 @@ struct PatternLoopCommand {
     bool state;
 };
 
+struct SetStereoOutputCommand {
+    bool state;
+};
+
 typedef struct NTXMFifoMessage {
     u16 commandType;
 
@@ -112,6 +117,7 @@ typedef struct NTXMFifoMessage {
         PlayInstCommand        playInst;
         StopInstCommand        stopInst;
         PatternLoopCommand     ptnLoop;
+        SetStereoOutputCommand setStereoOutput;
     };
 } NTXMFifoMessage;
 
@@ -133,6 +139,7 @@ void CommandStopInst(u8 channel);
 void CommandMicOn(void);
 void CommandMicOff(void);
 void CommandSetPatternLoop(bool state);
+void CommandSetStereoOutput(bool state);
 
 void RegisterRowCallback(void (*onUpdateRow_)(u16));
 void RegisterStopCallback(void (*onStop_)(void));

@@ -232,3 +232,14 @@ void CommandSetPatternLoop(bool state)
 
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
 }
+
+void CommandSetStereoOutput(bool state)
+{
+    NTXMFifoMessage command;
+    command.commandType = SET_STEREO_OUTPUT;
+
+    SetStereoOutputCommand* c = &command.setStereoOutput;
+    c->state = state;
+
+    fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
+}

@@ -16,6 +16,7 @@
 
 extern NTXM7 *ntxm7;
 bool ntxm_recording = false;
+bool ntxm_stereo_output = false;
 
 static void RecvCommandPlaySample(PlaySampleCommand *ps)
 {
@@ -71,6 +72,10 @@ static void RecvCommandStopInst(StopInstCommand *c) {
 
 static void RecvCommandPatternLoop(PatternLoopCommand *c) {
     ntxm7->setPatternLoop(c->state);
+}
+
+static void RecvCommandSetStereoOutput(SetStereoOutputCommand *c) {
+    ntxm_stereo_output = c->state;
 }
 
 void CommandDbgOut(const char *formatstr, ...)
@@ -177,6 +182,9 @@ void CommandRecvHandler(int bytes, void *user_data) {
             break;
         case PATTERN_LOOP:
             RecvCommandPatternLoop(&command.ptnLoop);
+            break;
+        case SET_STEREO_OUTPUT:
+            RecvCommandSetStereoOutput(&command.setStereoOutput);
             break;
         default:
             break;
