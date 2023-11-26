@@ -141,8 +141,7 @@ int CommandStopRecording(void)
 
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
 
-    while(!fifoCheckValue32(FIFO_NTXM))
-        swiDelay(1);
+    fifoWaitValue32(FIFO_NTXM);
 
     return (int)fifoGetValue32(FIFO_NTXM);
 }

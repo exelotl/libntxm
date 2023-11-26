@@ -76,9 +76,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 	FILE *xmfile = fopen(filename, "r");
 	if((s32)xmfile == -1)
 		return XM_TRANSPORT_ERROR_FOPENFAIL;
-#ifndef BLOCKSDS
 	setvbuf(xmfile, NULL, _IOFBF, 4096);
-#endif
 	//
 	// Read header
 	//
