@@ -155,7 +155,7 @@ void Instrument::play(u8 _note, u8 _volume, u8 _channel /* effects here */)
 	}
 }
 
-void Instrument::bendNote(u8 _note, u8 _basenote, u8 _finetune, u8 _channel)
+void Instrument::bendNote(u8 _note, u8 _basenote, s16 _finetune, u8 _channel)
 {
 	if(_note > MAX_NOTE)
 		return;
@@ -164,6 +164,19 @@ void Instrument::bendNote(u8 _note, u8 _basenote, u8 _finetune, u8 _channel)
 		case INST_SAMPLE:
 			if(n_samples > 0)
 				samples[note_samples[_note]]->bendNote(_note, _basenote, _finetune, _channel);
+			break;
+	}
+}
+
+void Instrument::bendNoteDirect(u8 _note, s16 _fine_step, u8 _channel)
+{
+	if(_fine_step > 19968) // 19968 is the highest intermediary pitch calculation
+		return;								// before converted to an index value for lookup table
+	
+	switch(type) {
+		case INST_SAMPLE:
+			if(n_samples > 0)
+				samples[note_samples[_note]]->bendNoteDirect(_fine_step, _channel);
 			break;
 	}
 }
@@ -220,7 +233,7 @@ u16 Instrument::getSamples(void) {
 
 #ifdef ARM9
 
-void Instrument::setVolumeEnvelope(u16 *envelope, u8 n_points, bool vol_env_on_, bool vol_env_sustain_, bool vol_env_loop_)
+void Instrument::setVolumeEnvelope(u16 *envelope, u8 n_points, u8 v_sustain_point, bool vol_env_on_, bool vol_env_sustain_, bool vol_env_loop_)
 {
 	n_vol_points = n_points;
 	for(u8 i=0; i<n_points; ++i)
@@ -229,12 +242,13 @@ void Instrument::setVolumeEnvelope(u16 *envelope, u8 n_points, bool vol_env_on_,
 		vol_envelope_y[i] = envelope[2*i+1];
 	}
 	
+	vol_sustain_point = v_sustain_point;
 	vol_env_on      = vol_env_on_;
 	vol_env_sustain = vol_env_sustain_;
 	vol_env_loop    = vol_env_loop_;
 }
 
-void Instrument::setPanningEnvelope(u16 *envelope, u8 n_points, bool pan_env_on_, bool pan_env_sustain_, bool pan_env_loop_)
+void Instrument::setPanningEnvelope(u16 *envelope, u8 n_points, u8 p_sustain_point,  bool pan_env_on_, bool pan_env_sustain_, bool pan_env_loop_)
 {
 	n_pan_points = n_points;
 	for(u8 i=0; i<n_points; ++i)
@@ -243,6 +257,7 @@ void Instrument::setPanningEnvelope(u16 *envelope, u8 n_points, bool pan_env_on_
 		pan_envelope_y[i] = envelope[2*i+1];
 	}
 	
+	pan_sustain_point = p_sustain_point;
 	pan_env_on      = pan_env_on_;
 	pan_env_sustain = pan_env_sustain_;
 	pan_env_loop    = pan_env_loop_;
@@ -256,6 +271,16 @@ void Instrument::setVolumeEnvelopePoints(u16 *xs, u16 *ys, u16 n_points)
 		vol_envelope_x[i] = xs[i];
 		vol_envelope_y[i] = ys[i];
 	}
+}
+
+void Instrument::setVolumeEnvelopeSustainPoint(u8 sus_point)
+{
+  vol_sustain_point = sus_point;
+}
+
+void Instrument::toggleVolumeEnvelopeSustain(bool is_enabled)
+{
+  vol_env_sustain = is_enabled;
 }
 
 u16 Instrument::getVolumeEnvelope(u16 **xs, u16 **ys)
@@ -274,22 +299,39 @@ u16 Instrument::getPanningEnvelope(u16 **xs, u16 **ys)
 	return n_pan_points;
 }
 
+bool Instrument::getVolumeEnvelopeSustainFlag(void)
+{
+  return vol_env_sustain;
+}
+
+u8 Instrument::getVolumeEnvelopeSustainPoint(void)
+{
+  return vol_sustain_point;
+}
 #endif
 
-void Instrument::updateEnvelopePos(u8 bpm, u8 ms_passed, u8 channel)
+void Instrument::updateEnvelopePos(u8 bpm, u8 ms_passed, u8 channel, u8 note)
 {
+	
+	if ((note != STOP_NOTE) && ((vol_env_sustain == true) && (envelope_pixels[channel] >= vol_envelope_x[vol_sustain_point]) && (envelope_pixels[channel] < vol_envelope_x[vol_sustain_point + 1])))
+	{
+	  envelope_pixels[channel] = vol_envelope_x[vol_sustain_point];
+	  return;
+	}
 	envelope_ms[channel] += ms_passed;
 	envelope_pixels[channel] = envelope_ms[channel] * bpm * 50 / 120 / 1000; // 50 pixels per second at 120 BPM
 }
 
-u16 Instrument::getEnvelopeAmp(u8 channel)
+u16 Instrument::getEnvelopeAmp(u8 channel, u8 note)
 {
 	if( (n_vol_points == 0) || (vol_env_on == false) )
 		return 64;
 	
 	u8 envpoint = 0;
 	while( (envpoint < n_vol_points - 1) && (envelope_pixels[channel] >= vol_envelope_x[envpoint+1]) )
-		envpoint++;
+	{
+	    envpoint++;
+	}
 	
 	if(envpoint >= n_vol_points - 1) // Last env point?
 		return vol_envelope_y[envpoint];

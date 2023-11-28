@@ -60,7 +60,8 @@ class Sample
 		void saveAsWav(char *filename);
 
 		void play(u8 note, u8 volume_, u8 channel  /* effects here */);
-		void bendNote(u8 note, u8 basenote, u8 finetune, u8 channel);
+		void bendNote(u8 note, u8 basenote, s16 _finetune, u8 channel);
+		void bendNoteDirect(s16 fine_step, u8 channel);
 		u32 calcPlayLength(u8 note);
 
 		void setRelNote(s8 _rel_note);
@@ -91,6 +92,9 @@ class Sample
 
 		void setPanning(u8 pan);
 		u8 getPanning(void);
+		void setBasePanning(void);
+		u8 getBasePanning(void);
+		void updatePanning(u8 channel);
 
 		void setName(const char *name_);
 		const char *getName(void);
@@ -133,6 +137,7 @@ class Sample
 		u32 loop_length;	// In bytes, not in samples!
 		u8 volume;
 		u8 panning;
+		u8 base_panning; // xm panning effects resets when a new note is played
 		char name[SAMPLE_NAME_LENGTH + 1];
 
 		// These are calculated in the constructor

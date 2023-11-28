@@ -44,6 +44,7 @@
 
 #define MAX(x,y)						((x)>(y)?(x):(y))
 #define LOOKUP_FREQ(note,finetune)		(linear_freq_table_lookup(MAX(0,N_FINETUNE_STEPS*(note)+(finetune))))
+#define GET_FREQ_DIRECT(fine_step)		(linear_freq_table_lookup(MAX(0,fine_step)))
 
 // This is defined in audio.h for arm7 but not for arm9
 #if !defined(SOUND_FORMAT_ADPCM)
@@ -99,7 +100,7 @@ inline u32 linear_freq_table_lookup(u32 note)
 Sample::Sample(void *_sound_data, u32 _n_samples, u16 _sampling_frequency, bool _is_16_bit,
 	u8 _loop, u8 _volume)
 	:original_data(0), pingpong_data(0), n_samples(_n_samples), is_16_bit(_is_16_bit), loop(_loop),
-	loop_start(0), loop_length(0), volume(_volume), panning(128)
+	loop_start(0), loop_length(0), volume(_volume), panning(64), base_panning(64)
 {
 	sound_data = _sound_data;
 
@@ -260,14 +261,20 @@ void Sample::play(u8 note, u8 volume_ , u8 channel)
 		SOUND_VOL(smpvolume);
 }
 
-void Sample::bendNote(u8 note, u8 basenote, u8 finetune, u8 channel)
+void Sample::bendNote(u8 note, u8 basenote, s16 _finetune, u8 channel)
 {
 	// Add 48 to the note, because otherwise absolute_note can get negative.
 	// (The minimum value of relative note is -48)
 	u8 absolute_note = note + 48;
 	u8 realnote = (absolute_note+rel_note);
+  _finetune += finetune; //Need to offset by sample's finetune
+	SCHANNEL_TIMER(channel) = SOUND_FREQ((int)LOOKUP_FREQ(realnote,_finetune));
+}
 
-	SCHANNEL_TIMER(channel) = SOUND_FREQ((int)LOOKUP_FREQ(realnote,finetune));
+void Sample::bendNoteDirect(s16 fine_step, u8 channel)
+{
+  CommandDbgOut("finestep: 0x%x channel: 0x%x\n", fine_step, channel);
+	SCHANNEL_TIMER(channel) = SOUND_FREQ((int)GET_FREQ_DIRECT(fine_step));
 }
 
 #endif
@@ -459,6 +466,28 @@ u8 Sample::getPanning(void)
 {
 	return panning;
 }
+
+void Sample::setBasePanning(void)
+{
+	base_panning = panning;
+}
+
+u8 Sample::getBasePanning(void)
+{
+	return base_panning;
+}
+
+#if defined(ARM7)
+
+void Sample::updatePanning(u8 channel)
+{
+	//The idea is to update panning when it's changed during playback
+	u32 control_reg_val = SCHANNEL_CR(channel) & 0xff80ffff;
+
+	SCHANNEL_CR(channel) = control_reg_val | SOUND_PAN(ntxm_stereo_output ? panning/2 : 64);
+}
+
+#endif
 
 void Sample::setName(const char *name_)
 {

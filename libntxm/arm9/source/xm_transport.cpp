@@ -473,6 +473,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 			fread( &instinfo->reserved_bytes, 11, 1, xmfile);
 
 			bool vol_env_on, vol_env_sustain, vol_env_loop, pan_env_on, pan_env_sustain, pan_env_loop;
+			
 			vol_env_on      = instinfo->vol_type & BIT(0);
 			vol_env_sustain = instinfo->vol_type & BIT(1);
 			vol_env_loop    = instinfo->vol_type & BIT(2);
@@ -480,9 +481,9 @@ u16 XMTransport::load(const char *filename, Song **_song)
 			pan_env_sustain = instinfo->pan_type & BIT(1);
 			pan_env_loop    = instinfo->pan_type & BIT(2);
 
-			instrument->setVolumeEnvelope(instinfo->vol_points, instinfo->n_vol_points,
+			instrument->setVolumeEnvelope(instinfo->vol_points, instinfo->n_vol_points, instinfo->vol_sustain_point, 
 					vol_env_on, vol_env_sustain, vol_env_loop);
-			instrument->setPanningEnvelope(instinfo->pan_points, instinfo->n_pan_points,
+			instrument->setPanningEnvelope(instinfo->pan_points, instinfo->n_pan_points, instinfo->pan_sustain_point, 
 					pan_env_on, pan_env_sustain, pan_env_loop);
 
 			// Skip the rest of the header if is longer than the current position
@@ -1024,7 +1025,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 			instinfo->n_pan_points = instrument->n_pan_points;
 
 			// Vol env sustain, start, end (not used for now)
-			instinfo->vol_sustain_point = 0;
+			instinfo->vol_sustain_point = instrument->getVolumeEnvelopeSustainPoint();
 			instinfo->vol_loop_start_point = 0;
 			instinfo->vol_loop_end_point = 0;
 

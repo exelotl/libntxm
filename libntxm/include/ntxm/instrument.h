@@ -49,6 +49,8 @@
 
 #define MAX_CHANNELS			16
 
+#define STOP_NOTE       254
+
 class Instrument
 {
 	friend class EnvelopeEditor;
@@ -65,7 +67,8 @@ class Instrument
 		void setSample(u8 idx, Sample *sample);
 		Sample *getSampleForNote(u8 _note);
 		void play(u8 _note, u8 _volume, u8 _channel);
-		void bendNote(u8 _note, u8 _basenote, u8 _finetune, u8 _channel);
+		void bendNote(u8 _note, u8 _basenote, s16 _finetune, u8 _channel);
+		void bendNoteDirect(u8 _note, s16 _fine_step, u8 _channel);
 		void setNoteSample(u16 note, u8 sample_id);
 		u8 getNoteSample(u16 note);
 		void setVolEnvEnabled(bool is_enabled);
@@ -79,16 +82,20 @@ class Instrument
 	
 		u16 getSamples(void);
 		
-		void setVolumeEnvelope(u16 *envelope, u8 n_points, bool vol_env_on_, bool vol_env_sustain_, bool vol_env_loop_);
-		void setPanningEnvelope(u16 *envelope, u8 n_points, bool pan_env_on_, bool pan_env_sustain_, bool pan_env_loop_);
+		void setVolumeEnvelope(u16 *envelope, u8 n_points, u8 v_sustain_point, bool vol_env_on_, bool vol_env_sustain_, bool vol_env_loop_);
+		void setPanningEnvelope(u16 *envelope, u8 n_points, u8 p_sustain_point, bool pan_env_on_, bool pan_env_sustain_, bool pan_env_loop_);
 		
 		void setVolumeEnvelopePoints(u16 *xs, u16 *ys, u16 n_points);
+		void toggleVolumeEnvelopeSustain(bool is_enabled);
+		void setVolumeEnvelopeSustainPoint(u8 sus_point);
 		
 		u16 getVolumeEnvelope(u16 **xs, u16 **ys);
 		u16 getPanningEnvelope(u16 **xs, u16 **ys);
+		bool getVolumeEnvelopeSustainFlag(void);
+		u8 getVolumeEnvelopeSustainPoint(void);
 		
-		void updateEnvelopePos(u8 bpm, u8 ms_passed, u8 channel);
-		u16 getEnvelopeAmp(u8 channel);
+		void updateEnvelopePos(u8 bpm, u8 ms_passed, u8 channel, u8 note);
+		u16 getEnvelopeAmp(u8 channel, u8 note);
 		
 	private:
 		
@@ -116,6 +123,7 @@ class Instrument
 		bool vol_env_on;
 		bool vol_env_sustain;
 		bool vol_env_loop;
+		u8 vol_sustain_point;
 		
 		u16 pan_envelope_x[MAX_ENV_POINTS];
 		u16 pan_envelope_y[MAX_ENV_POINTS];
@@ -123,6 +131,7 @@ class Instrument
 		bool pan_env_on;
 		bool pan_env_sustain;
 		bool pan_env_loop;
+		u8 pan_sustain_point;
 		
 		u16 envelope_ms[MAX_CHANNELS];
 		u16 envelope_pixels[MAX_CHANNELS]; // Pixel of the FT2 envelope editor :-)

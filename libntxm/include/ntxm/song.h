@@ -62,6 +62,11 @@
 
 #define EFFECT_ARPEGGIO			0x0
 #define EFFECT_PORTA_UP			0x1
+#define EFFECT_PORTA_DOWN     0x2
+#define EFFECT_PORTA_TONE     0x3
+#define EFFECT_VIBRATO     0x4
+
+#define EFFECT_SET_PAN    0x8
 #define EFFECT_VOLUME_SLIDE		0xA
 #define EFFECT_SET_VOLUME		0xC
 #define EFFECT_PATTERN_BREAK	0xD
@@ -75,6 +80,7 @@
 #define EFFECT_E_SET_LOOP				0x6
 
 #define EFFECT_E_NOTE_CUT				0x0C
+#define EFFECT_E_NOTE_DELAY        0x0D
 
 #define EFFECT_SET_SPEED_TEMPO			0x0F
 /*

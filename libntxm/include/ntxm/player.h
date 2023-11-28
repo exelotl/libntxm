@@ -34,6 +34,8 @@
 #define _PLAYER_H_
 
 #include "song.h"
+#include "vibrato_sine_table.h"
+#include "linear_freq_table.h"
 
 #include <new>
 #include <stdlib.h>
@@ -41,6 +43,8 @@
 #define FADE_OUT_MS	10 // Milliseconds that a click-preventing fadeout takes
 
 #define CHANNEL_TO_BE_DISABLED	2
+
+#define DELAY_CMD 0x0ed0
 
 typedef struct
 {
@@ -60,11 +64,22 @@ typedef struct
 	u8 channel_fade_target_volume[MAX_CHANNELS];	// Target volume after fading
 	u8 channel_volume[MAX_CHANNELS];			// Current channel volume
 	u8 channel_note[MAX_CHANNELS];			// Current note playing
+	u8 channel_prev_note[MAX_CHANNELS];  // Previous note played
 	u8 channel_instrument[MAX_CHANNELS];		// Current instrument playing
 	u8 channel_effect[MAX_CHANNELS];			// Currently active effect
 	u8 channel_effect_param[MAX_CHANNELS];		// Param of active effect
 	u8 channel_env_vol[MAX_CHANNELS];			// Current envelope height (0..63)
 	u8 channel_fade_vol[MAX_CHANNELS];			// Current fading volume (0..127)
+	u8 channel_prev_sample_vol[MAX_CHANNELS];      // Last sample volume
+	s16 channel_porta_accumulator[MAX_CHANNELS];
+	s16 channel_porta_tone_target[MAX_CHANNELS]; //Target value for portamento to note effect
+	u16 channel_porta_increment[MAX_CHANNELS];
+	bool channel_porta_up[MAX_CHANNELS];
+	bool channel_porta_enabled[MAX_CHANNELS];
+	u8 channel_vib_accumulator[MAX_CHANNELS];
+	u8 channel_vib_phase_increment[MAX_CHANNELS];
+	u16 channel_vib_depth[MAX_CHANNELS];
+	
 	bool waitrow;							// Wait until the end of the last tick before muting instruments
 	bool patternloop;						// Loop the current pattern
 
@@ -142,12 +157,16 @@ class Player {
 
 		void startPlayTimer(void);
 		void playRow(void);
+		void updateChannelVol(u8 volume, u8 channel); //Pattern volume updates per channel
 		void handleEffects(void); // Row Effect handler
 		void handleTickEffects(void); // Tick Effect handler
 		void finishEffects(void); // Clean up after the effects
 
 		void initState(void);
 		void initEffState(void);
+		void initDefaultPanning(void);
+		void resetPanning(void);
+		void resetVibrato(u8 channel);
 
 		void handleFade(u32 passed_time);
 
