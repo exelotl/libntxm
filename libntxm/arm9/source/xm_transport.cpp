@@ -1133,7 +1133,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 				fwrite(&smp_type, 1, 1, xmfile);
 
 				// Panning
-				u8 smp_panning = sample->getPanning();
+				u8 smp_panning = sample->getBasePanning();
 				fwrite(&smp_panning, 1, 1, xmfile);
 
 				// Relative note
