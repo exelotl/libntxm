@@ -100,7 +100,7 @@ inline u32 linear_freq_table_lookup(u32 note)
 Sample::Sample(void *_sound_data, u32 _n_samples, u16 _sampling_frequency, bool _is_16_bit,
 	u8 _loop, u8 _volume)
 	:original_data(0), pingpong_data(0), n_samples(_n_samples), is_16_bit(_is_16_bit), loop(_loop),
-	loop_start(0), loop_length(0), volume(_volume), panning(64), base_panning(64)
+	loop_start(0), loop_length(0), volume(_volume), panning(128), base_panning(128)
 {
 	sound_data = _sound_data;
 
@@ -114,7 +114,8 @@ Sample::Sample(void *_sound_data, u32 _n_samples, u16 _sampling_frequency, bool 
 }
 
 Sample::Sample(const char *filename, u8 _loop, bool *_success)
-	:original_data(0), pingpong_data(0), loop(_loop), loop_start(0), loop_length(0), volume(255), panning(128)
+	:original_data(0), pingpong_data(0), loop(_loop), loop_start(0), loop_length(0), volume(255),
+	panning(128), base_panning(128)
 {
 	sound_data = (void**)calloc(20*sizeof(void*), 1);
 

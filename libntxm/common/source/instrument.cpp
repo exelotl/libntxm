@@ -46,7 +46,7 @@
 Instrument::Instrument(const char *_name, u8 _type, u8 _volume)
 	:type(_type), volume(_volume),
 	 n_vol_points(0), vol_env_on(false), vol_env_sustain(false), vol_env_loop(false),
-	 n_pan_points(0)
+	 n_pan_points(0), pan_env_on(false), pan_env_sustain(false), pan_env_loop(false)
 {
 	name = (char*)calloc(MAX_INST_NAME_LENGTH+1, 1);
 	
@@ -59,7 +59,9 @@ Instrument::Instrument(const char *_name, u8 _type, u8 _volume)
 }
 
 Instrument::Instrument(const char *_name, Sample *_sample, u8 _volume)
-	:type(INST_SAMPLE), volume(_volume)
+	:type(INST_SAMPLE), volume(_volume),
+	 n_vol_points(0), vol_env_on(false), vol_env_sustain(false), vol_env_loop(false),
+	 n_pan_points(0), pan_env_on(false), pan_env_sustain(false), pan_env_loop(false)
 {
 	name = (char*)malloc(MAX_INST_NAME_LENGTH+1);
 	for(u16 i=0; i<MAX_INST_NAME_LENGTH+1; ++i) name[i] = '\0';
