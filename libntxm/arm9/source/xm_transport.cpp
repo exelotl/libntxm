@@ -292,8 +292,6 @@ u16 XMTransport::load(const char *filename, Song **_song)
 					if(read_note) {
 						note = ptn_data[ptn_data_offset];
 						ptn_data_offset++;
-					} else {
-						note = 0;
 					}
 
 					if(read_inst) {
@@ -330,12 +328,12 @@ u16 XMTransport::load(const char *filename, Song **_song)
 					//my_dprintf("note: %u\ninst: %u\nvol: %u\neff_type: %u\neff_param: %u\n",note,inst,vol,eff_type,eff_param);
 
 					// Insert note into song
-					if(note==0) {
-						ptn[chn][row].note = EMPTY_NOTE;
+					if(note > 0 && note < 97) {
+						ptn[chn][row].note = note - 1;
 					} else if(note==97) {
 						ptn[chn][row].note = STOP_NOTE;
 					} else {
-						ptn[chn][row].note = note - 1;
+						ptn[chn][row].note = EMPTY_NOTE;
 					}
 
 					if(inst != NO_INSTRUMENT) {
