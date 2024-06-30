@@ -1,1 +1,5 @@
 .svn/
+build/
+build-debug/
+*.a
+
