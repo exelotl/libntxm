@@ -588,6 +588,14 @@ void Player::handleEffects(void)
 					break;
 				}
 
+				case EFFECT_POSITION_JUMP:
+				{
+					effstate.pattern_break_requested = true;
+					effstate.pattern_break_row = 0;
+					state.potpos = param-1;
+					break;
+				}
+
 				case EFFECT_SET_VOLUME:
 				{
 					u8 target_volume = MIN(MAX_VOLUME, param * 2);
