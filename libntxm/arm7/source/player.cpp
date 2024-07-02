@@ -527,6 +527,7 @@ void Player::handleEffects(void)
 {
 	effstate.pattern_loop_jump_now = false;
 	effstate.pattern_break_requested = false;
+	effstate.position_jump_requested = false;
 
 	for(u8 channel=0; channel < song->n_channels && channel<MAX_CHANNELS; ++channel)
 	{
@@ -591,8 +592,9 @@ void Player::handleEffects(void)
 				case EFFECT_POSITION_JUMP:
 				{
 					effstate.pattern_break_requested = true;
+					effstate.position_jump_requested = true;
 					effstate.pattern_break_row = 0;
-					state.potpos = param-1;
+					effstate.position_jump_pos = param;
 					break;
 				}
 
@@ -619,7 +621,6 @@ void Player::handleEffects(void)
 
 					effstate.pattern_break_requested = true;
 					effstate.pattern_break_row = newrow;
-
 					break;
 				}
 
@@ -991,7 +992,9 @@ void Player::initEffState(void)
 	memset(effstate.channel_setvol_requested, false, sizeof(effstate.channel_setvol_requested));
 	memset(effstate.channel_last_slidespeed, 0, sizeof(effstate.channel_last_slidespeed));
 	effstate.pattern_break_requested = false;
+	effstate.position_jump_requested = false;
 	effstate.pattern_break_row = 0;
+	effstate.position_jump_pos = 0;
 	effstate.pattern_delay_store = 0;
 	effstate.pattern_delay = 0;
 }
@@ -1107,11 +1110,13 @@ bool Player::calcNextPos(u16 *nextrow, u8 *nextpotpos) // Calculate next row and
 	if(effstate.pattern_break_requested == true)
 	{
 		*nextrow = effstate.pattern_break_row;
+		
+		int next_pos = effstate.position_jump_requested ? effstate.position_jump_pos : state.potpos + 1;
 
-		if(state.potpos < song->getPotLength() - 1)
-				*nextpotpos = state.potpos + 1;
-			else
-				*nextpotpos = song->getRestartPosition();
+		if(next_pos < song->getPotLength())
+			*nextpotpos = next_pos;
+		else
+			*nextpotpos = song->getRestartPosition();
 
 		return false;
 	}

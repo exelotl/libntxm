@@ -97,7 +97,9 @@ typedef struct {
 	bool channel_setvol_requested[MAX_CHANNELS];
 	s16 channel_last_slidespeed[MAX_CHANNELS];
 	bool pattern_break_requested;
+	bool position_jump_requested;  // implies pattern_break_requested
 	u8 pattern_break_row;
+	u8 position_jump_pos;
 	u8 pattern_delay_store;
 	u8 pattern_delay;         // 0: inactive, 1..16: (N-1) repetitions remaining
 } EffectState;
