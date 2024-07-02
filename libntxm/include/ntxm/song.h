@@ -82,6 +82,8 @@
 #define EFFECT_E_NOTE_CUT				0x0C
 #define EFFECT_E_NOTE_DELAY        0x0D
 
+#define EFFECT_E_PATTERN_DELAY			0x0E
+
 #define EFFECT_SET_SPEED_TEMPO			0x0F
 /*
   0      Appregio

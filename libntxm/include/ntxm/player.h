@@ -98,6 +98,8 @@ typedef struct {
 	s16 channel_last_slidespeed[MAX_CHANNELS];
 	bool pattern_break_requested;
 	u8 pattern_break_row;
+	u8 pattern_delay_store;
+	u8 pattern_delay;         // 0: inactive, 1..16: (N-1) repetitions remaining
 } EffectState;
 
 class Player {
