@@ -68,6 +68,7 @@
 
 #define EFFECT_SET_PAN    0x8
 #define EFFECT_VOLUME_SLIDE		0xA
+#define EFFECT_POSITION_JUMP	0xB
 #define EFFECT_SET_VOLUME		0xC
 #define EFFECT_PATTERN_BREAK	0xD
 #define EFFECT_E				0xE
@@ -81,6 +82,8 @@
 
 #define EFFECT_E_NOTE_CUT				0x0C
 #define EFFECT_E_NOTE_DELAY        0x0D
+
+#define EFFECT_E_PATTERN_DELAY			0x0E
 
 #define EFFECT_SET_SPEED_TEMPO			0x0F
 /*
