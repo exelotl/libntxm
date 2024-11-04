@@ -16,16 +16,23 @@
 
 extern NTXM7 *ntxm7;
 bool ntxm_recording = false;
+bool ntxm_mic_recording = false;
 bool ntxm_stereo_output = false;
 int ntxm_record_buffer_size = 0;
 int ntxm_record_max_buffer_size = 0;
 
 static void MicBufSwapCallback(u8 *completedBuffer, int length) {
+    if (!ntxm_mic_recording)
+        return;
+
     if (length > 0)
     {
         ntxm_record_buffer_size += length;
         if (ntxm_record_buffer_size >= ntxm_record_max_buffer_size)
+        {
+            ntxm_mic_recording = false;
             micStopRecording();
+        }
     }
 }
 
@@ -50,6 +57,7 @@ static void RecvCommandMicOff(void)
 
 static void RecvCommandStartRecording(StartRecordingCommand* sr)
 {
+    ntxm_mic_recording = true;
     ntxm_recording = true;
     ntxm_record_buffer_size = 0;
     ntxm_record_max_buffer_size = sr->length;
@@ -58,8 +66,10 @@ static void RecvCommandStartRecording(StartRecordingCommand* sr)
 
 static void RecvCommandStopRecording()
 {
-    micStopRecording(); // buffer size in samples
+    if (ntxm_mic_recording)
+        micStopRecording(); // buffer size in samples
     fifoSendValue32(FIFO_NTXM, ntxm_record_buffer_size);
+    ntxm_mic_recording = false;
     ntxm_recording = false;
 }
 
