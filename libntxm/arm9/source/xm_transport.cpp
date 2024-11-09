@@ -73,7 +73,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 		return XM_TRANSPORT_FILE_ZERO_BYTE;
 	}
 
-	FILE *xmfile = fopen(filename, "r");
+	FILE *xmfile = fopen(filename, "rb");
 	if((s32)xmfile == -1)
 		return XM_TRANSPORT_ERROR_FOPENFAIL;
 	setvbuf(xmfile, NULL, _IOFBF, 4096);
@@ -700,7 +700,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 	// TODO: Let the Arm7 update the RTC first
 	// TODO: Check if there's enough space on the card
 
-	FILE *xmfile = fopen(filename, "w");
+	FILE *xmfile = fopen(filename, "wb");
 
 	if((s32)xmfile == -1) {
 		return XM_TRANSPORT_ERROR_FOPENFAIL;

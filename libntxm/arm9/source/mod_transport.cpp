@@ -60,7 +60,7 @@ u16 ModTransport::load(const char *filename, Song **_song)
 	// Init
 	//
 	
-	FILE *modfile = fopen(filename, "r");
+	FILE *modfile = fopen(filename, "rb");
 	
 	if((s32)modfile == -1)
 		return MOD_TRANSPORT_ERROR_FOPENFAIL;

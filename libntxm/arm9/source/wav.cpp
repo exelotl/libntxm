@@ -65,7 +65,7 @@ bool Wav::load(const char *filename)
 
 	FILE *fileh;
 
-	fileh = fopen(filename, "r");
+	fileh = fopen(filename, "rb");
 
 	if(!fileh)
 		return false;
@@ -197,7 +197,7 @@ bool Wav::load(const char *filename)
 
 bool Wav::save(const char *filename)
 {
-	FILE *fileh = fopen(filename, "w");
+	FILE *fileh = fopen(filename, "wb");
 	if(fileh == NULL)
 		return false;
 
