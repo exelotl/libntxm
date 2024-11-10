@@ -328,16 +328,18 @@ void Player::playTimerHandler(void)
 					u16 nextrow;
 					u8 nextpattern, nextpotpos;
 
-					calcNextPos(&nextrow, &nextpotpos);
-					nextpattern = song->pattern_order_table[nextpotpos];
-
-					nextNote = song->patterns[nextpattern][channel][nextrow].note;
-					if((nextNote!=EMPTY_NOTE) && (state.channel_fade_active[channel] == 0))
+					if(!calcNextPos(&nextrow, &nextpotpos))
 					{
-						// If so, fade out to avoid a click.
-						state.channel_fade_active[channel] = 1;
-						state.channel_fade_ms[channel] = FADE_OUT_MS;
-						state.channel_fade_target_volume[channel] = 0;
+						nextpattern = song->pattern_order_table[nextpotpos];
+
+						nextNote = song->patterns[nextpattern][channel][nextrow].note;
+						if((nextNote!=EMPTY_NOTE) && (state.channel_fade_active[channel] == 0))
+						{
+							// If so, fade out to avoid a click.
+							state.channel_fade_active[channel] = 1;
+							state.channel_fade_ms[channel] = FADE_OUT_MS;
+							state.channel_fade_target_volume[channel] = 0;
+						}
 					}
 				}
 			}
@@ -431,20 +433,16 @@ void Player::playTimerHandler(void)
 			}
 			
 			bool finished = calcNextPos(&state.row, &state.potpos);
-			if(finished == true)
+			if(finished || state.waitrow)
 			{
-				stop();
-			}
-			else
-			{
-				state.pattern = song->pattern_order_table[state.potpos];
-			}
-			
-			if(state.waitrow == true) {
 				stop();
 				CommandNotifyStop();
 				state.waitrow = false;
 				return;
+			}
+			else
+			{
+				state.pattern = song->pattern_order_table[state.potpos];
 			}
 
 			if(effstate.pattern_break_requested == true)
