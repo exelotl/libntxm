@@ -64,6 +64,9 @@ class Wav {
 		bool isStereo(void)       { return n_channels_ == 2; }
 		u8 getBitPerSample(void)  { return bit_per_sample_; }
 		u8 getCompression(void)   { return compression_; }
+		u8 getLoopType(void)      { return loop_type_; }
+		u32 getLoopStart(void)    { return loop_start_; }
+		u32 getLoopEnd(void)      { return loop_end_; }
 
 		void setCompression(u8 compression)     { compression_ = compression; }
 		void setNChannels(u8 n_channels)        { n_channels_ = n_channels; }
@@ -71,7 +74,10 @@ class Wav {
 		void setBitPerSample(u8 bit_per_sample) { bit_per_sample_ = bit_per_sample; }
 		void setNSamples(u32 n_samples)         { n_samples_ = n_samples; }
 		void setAudioData(u8 *audio_data)       { audio_data_ = audio_data; }
-		
+		void setLoopType(u8 loop_type)          { loop_type_ = loop_type; }
+		void setLoopStart(u32 loop_start)       { loop_start_ = loop_start; }
+		void setLoopEnd(u32 loop_end)           { loop_end_ = loop_end; }
+
 	private:
 		u8 compression_;
 		u8 n_channels_;
@@ -79,6 +85,9 @@ class Wav {
 		u8 bit_per_sample_;
 		u32 n_samples_;
 		u8 *audio_data_;
+		u8 loop_type_;
+		u32 loop_start_;
+		u32 loop_end_;
 };
 
 #endif

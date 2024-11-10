@@ -49,7 +49,7 @@
 
 Wav::Wav()
 	:compression_(CMP_PCM), n_channels_(1), sampling_rate_(22050), bit_per_sample_(8),
-	n_samples_(0), audio_data_(0)
+	n_samples_(0), audio_data_(0), loop_type_(0), loop_start_(0), loop_end_(-1)
 {
 
 }
@@ -146,51 +146,85 @@ bool Wav::load(const char *filename)
 	// Skip extra bytes
 	fseek(fileh, fmt_chunk_size - 16, SEEK_CUR);
 
-	fread(buf, 1, 4, fileh);
-
-	// Skip forward to the data chunk
-	while((!feof(fileh))&&(strcmp(buf,"data")!=0)) {
-		u32 chunk_size;
-		fread(&chunk_size, 4, 1, fileh);
-		fseek(fileh, chunk_size, 1);
-		fread(buf, 1, 4, fileh);
-	}
-
-	if(feof(fileh)) {
-		fclose(fileh);
-		return false;
-	}
-
-	// data chunk
-	u32 data_chunk_size;
-	fread(&data_chunk_size, 4, 1, fileh);
-
+	audio_data_ = NULL;
 	u8 sample_size = bit_per_sample_/8;
-	if(compression_ == CMP_PCM) {
-		n_samples_ = data_chunk_size / sample_size;
-	} else {
-		n_samples_ = data_chunk_size * 2 * sample_size;
+
+	loop_type_ = 0;
+
+	while(true) {
+		if(feof(fileh))
+			break;
+
+		u32 chunk_size;
+		if (fread(buf, 4, 1, fileh) <= 0)
+			break;
+		if (fread(&chunk_size, 4, 1, fileh) <= 0)
+			break;
+
+		u32 chunk_pos = ftell(fileh);
+		u32 loop_id, loop_type = 0, loop_start, loop_end;
+
+		if(!strcmp(buf, "data")) {
+			if(compression_ == CMP_PCM) {
+				n_samples_ = chunk_size / sample_size;
+			} else {
+				n_samples_ = chunk_size * 2 * sample_size;
+			}
+
+			audio_data_ = (u8*)malloc(chunk_size);
+			if(audio_data_ == 0) {
+				my_dprintf("Could not alloc mem(%ld) for wav.\n", chunk_size);
+				fclose(fileh);
+				return false;
+			}
+
+			// Read the data
+			memset(audio_data_, 0, chunk_size);
+			fread(audio_data_, chunk_size, 1, fileh);
+
+			// Convert 8 bit samples from unsigned to signed
+			if(bit_per_sample == 8) {
+				ntxm_unsigned2signed_8(audio_data_, chunk_size);
+			}
+
+			// Read everything, so continue
+			continue;
+		} else if (!strcmp(buf, "smpl")) {
+			u32 loop_count;
+
+			fseek(fileh, 0x24 - 0x08, SEEK_CUR);
+			fread(&loop_count, 4, 1, fileh);
+			fseek(fileh, 0x2C - 0x28, SEEK_CUR);
+
+			while(loop_count--) {
+				fread(&loop_id, 4, 1, fileh);
+				fread(&loop_type, 4, 1, fileh);
+				fread(&loop_start, 4, 1, fileh);
+				fread(&loop_end, 4, 1, fileh);
+				fseek(fileh, 8, SEEK_CUR);
+
+				if (loop_type >= 2)
+					continue;
+
+				loop_type_ = loop_type + 1;
+				loop_start_ = loop_start;
+				loop_end_ = loop_end;
+				break;
+			}
+		}
+
+		fseek(fileh, chunk_pos + chunk_size, SEEK_SET);
 	}
 
-	audio_data_ = (u8*)malloc(data_chunk_size);
-	if(audio_data_ == 0) {
-		my_dprintf("Could not alloc mem(%ld) for wav.\n", data_chunk_size);
-		fclose(fileh);
-		return false;
-	}
-
-	// Read the data
-	memset(audio_data_, 0, data_chunk_size);
-	fread(audio_data_, data_chunk_size, 1, fileh);
-
-	// Convert 8 bit samples from unsigned to signed
-	if(bit_per_sample == 8) {
-		ntxm_unsigned2signed_8(audio_data_, data_chunk_size);
-	}
-
-	// Finish up
 	fclose(fileh);
+	if (!audio_data_)
+		return false;
 
+	if (!loop_type_)
+	{
+		loop_start_ = 0;
+		loop_end_ = n_samples_ - 1;
+	}
 #endif
 	return true;
 }
@@ -254,6 +288,37 @@ bool Wav::save(const char *filename)
 	{
 		u16 *audio = (u16*)audio_data_;
 		fwrite(audio, data_chunk_size, 1, fileh);
+	}
+
+	if(loop_type_)
+	{
+		fwrite("smpl", 1, 4, fileh);
+
+		u32 smpl_chunk_size = 56;
+		fwrite(&smpl_chunk_size, 4, 1, fileh);
+
+		u32 tmp = 0;
+		fwrite(&tmp, 4, 1, fileh); // manufacturer
+		fwrite(&tmp, 4, 1, fileh); // product
+		u32 sample_period = 1000000000 / sampling_rate_;
+		fwrite(&sample_period, 4, 1, fileh);
+		fwrite(&tmp, 4, 1, fileh); // MIDI unity note
+		fwrite(&tmp, 4, 1, fileh); // MIDI pitch fraction
+		fwrite(&tmp, 4, 1, fileh); // SMPTE format
+		fwrite(&tmp, 4, 1, fileh); // SMPTE offset
+		tmp = 1;
+		fwrite(&tmp, 4, 1, fileh); // number of sample loops
+		tmp = 0;
+		fwrite(&tmp, 4, 1, fileh); // sample data bytes
+
+		u32 loop_id = 0;
+		fwrite(&loop_id, 4, 1, fileh);
+		u32 loop_type = loop_type_ - 1;
+		fwrite(&loop_type, 4, 1, fileh);
+		fwrite(&loop_start_, 4, 1, fileh);
+		fwrite(&loop_end_, 4, 1, fileh);
+		fwrite(&tmp, 4, 1, fileh); // fraction
+		fwrite(&tmp, 4, 1, fileh); // number of repeats
 	}
 
 	fclose(fileh);

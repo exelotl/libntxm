@@ -168,8 +168,9 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 		}
 	}
 
-	setLoopStart(0);
-	setLoopLength(n_samples);
+	setLoopStart(wav.getLoopStart());
+	setLoopLength(wav.getLoopEnd() - wav.getLoopStart() + 1);
+	setLoop(wav.getLoopType());
 
 	*_success = true;
 }
@@ -190,6 +191,9 @@ void Sample::saveAsWav(char *filename)
 	wav.setBitPerSample(is_16_bit?16:8);
 	wav.setNSamples(n_samples);
 	wav.setAudioData((u8*)getData());
+	wav.setLoopType(getLoop());
+	wav.setLoopStart(getLoopStart());
+	wav.setLoopEnd(getLoopStart() + getLoopLength() - 1);
 	wav.save(filename);
 }
 
