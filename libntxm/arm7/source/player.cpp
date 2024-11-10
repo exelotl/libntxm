@@ -121,6 +121,9 @@ void Player::play(u8 potpos, u16 row, bool loop)
 
 void Player::stop(void)
 {
+	if (!state.playing)
+		return;
+
 	state.playing = false;
 
 	// Stop all playing samples
