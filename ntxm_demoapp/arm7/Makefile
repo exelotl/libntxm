@@ -42,7 +42,7 @@ LIBS	:=	-lntxm7 -lnds7
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBNDS)
+LIBDIRS	:=	$(TOPDIR)/../libntxm $(LIBNDS)
  
   
 #---------------------------------------------------------------------------------
