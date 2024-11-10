@@ -394,23 +394,43 @@ u32 Sample::getLoopStart(void)
 
 void Sample::setLoopStart(u32 _loop_start)
 {
-	setLoopStartAndLength(_loop_start, loop_length);
+	u32 loop_length_in_samples;
+	if(is_16_bit)
+		loop_length_in_samples = loop_length / 2;
+	else
+		loop_length_in_samples = loop_length;
+
+	_loop_start = my_clamp(_loop_start, 0, n_samples-1);
+	loop_length_in_samples = my_clamp(loop_length_in_samples, 0, n_samples-1 - _loop_start);
+
+	setLoopStartAndLength(_loop_start, loop_length_in_samples);
 }
 
 void Sample::setLoopLength(u32 _loop_length)
 {
-	setLoopStartAndLength(loop_start, _loop_length);
+	u32 loop_start_in_samples;
+	if(is_16_bit)
+		loop_start_in_samples = loop_start / 2;
+	else
+		loop_start_in_samples = loop_start;
+
+	loop_start_in_samples = my_clamp(loop_start_in_samples, 0, n_samples-1);
+	u32 ll = my_clamp(_loop_length, 0, n_samples - loop_start_in_samples);
+
+	setLoopStartAndLength(loop_start_in_samples, ll);
 }
 
 void Sample::setLoopStartAndLength(u32 _loop_start, u32 _loop_length)
 {
+	u32 min_loop_length = (4 >> (is_16_bit ? 1 : 0)) >> (loop == PING_PONG_LOOP ? 1 : 0);
+
 	// Clamping
-	if(_loop_start >= n_samples) _loop_start = n_samples;
+	if(_loop_start >= (n_samples - min_loop_length)) _loop_start = n_samples - min_loop_length;
 	if(_loop_length >= (n_samples - _loop_start)) _loop_length = n_samples - _loop_start;
 
 	// NDS fix: If loop length is 0, it won't play the beginning of the sample until the loop
-	if(_loop_length == 0)
-		_loop_length = 2;
+	if(_loop_length < min_loop_length)
+		_loop_length = min_loop_length;
 
 	if(is_16_bit)
 	{
@@ -423,7 +443,7 @@ void Sample::setLoopStartAndLength(u32 _loop_start, u32 _loop_length)
 		loop_start = _loop_start;
 	}
 
-	if( loop == PING_PONG_LOOP )
+	if(loop == PING_PONG_LOOP)
 		updatePingPongLoop();
 }
 

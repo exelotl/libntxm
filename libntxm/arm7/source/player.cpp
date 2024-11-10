@@ -525,7 +525,7 @@ void Player::updateChannelVol(u8 volume, u8 channel)
 	if(volume == NO_VOLUME) {
 		return;
 	} else {
-		state.channel_volume[channel] = (volume * state.channel_prev_sample_vol[channel]) >> 16;
+		state.channel_volume[channel] = (volume * state.channel_prev_sample_vol[channel]) >> 8;
 	}
 }
 
