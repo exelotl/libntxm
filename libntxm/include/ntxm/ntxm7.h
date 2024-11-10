@@ -72,6 +72,9 @@ class NTXM7
 		// Set a pattern to looping
 		void setPatternLoop(bool loopstate);
 		
+                // Set player volume to 0-255
+                void setPlayerVolume(u8 vol);
+
 	private:
 		Player *player;
 };

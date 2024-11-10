@@ -242,3 +242,14 @@ void CommandSetStereoOutput(bool state)
 
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
 }
+
+void CommandSetPlayerVolume(u8 vol)
+{
+    NTXMFifoMessage command;
+    command.commandType = SET_PLAYER_VOLUME;
+
+    SetPlayerVolumeCommand* c = &command.setPlayerVolume;
+    c->vol = vol;
+
+    fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
+}

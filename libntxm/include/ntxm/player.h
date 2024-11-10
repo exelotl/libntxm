@@ -122,6 +122,9 @@ class Player {
 
 		void setSong(Song *_song);
 
+		// Set song volume to 0-255
+		void setSongVolume(u8 vol);
+
 		// Set a pattern to looping
 		void setPatternLoop(bool loopstate);
 
@@ -186,6 +189,7 @@ class Player {
 		void (*onSampleFinish)();
 
 		u32 lastms; // For timer
+		u8 songVolume;
 };
 
 #endif

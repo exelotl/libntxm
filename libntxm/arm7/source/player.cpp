@@ -50,7 +50,7 @@ extern bool ntxm_recording;
 /* ===================== PUBLIC ===================== */
 
 Player::Player(void (*_externalTimerHandler)(void))
-	:song(0), externalTimerHandler(_externalTimerHandler)
+	:song(0), externalTimerHandler(_externalTimerHandler), songVolume(255)
 {
 	initState();
 
@@ -88,6 +88,10 @@ void Player::setSong(Song *_song)
 // Set the current pattern to looping
 void Player::setPatternLoop(bool loopstate) {
 	state.patternloop = loopstate;
+}
+
+void Player::setSongVolume(u8 vol) {
+	songVolume = vol;
 }
 
 // Plays the song till the end starting at pattern order table position potpos and row row
@@ -186,9 +190,9 @@ void Player::playNote(u8 note, u8 volume, u8 channel, u8 instidx)
 	state.channel_instrument[channel] = instidx;
 
 	if(volume == NO_VOLUME) {
-		state.channel_volume[channel] = MAX_VOLUME * inst->getSampleForNote(note)->getVolume() / 255;
+		state.channel_volume[channel] = (MAX_VOLUME * inst->getSampleForNote(note)->getVolume()) >> 8;
 	} else {
-		state.channel_volume[channel] = volume * inst->getSampleForNote(note)->getVolume() / 255;
+		state.channel_volume[channel] = (volume * inst->getSampleForNote(note)->getVolume()) >> 8;
 	}
 	state.channel_prev_sample_vol[channel] = inst->getSampleForNote(note)->getVolume(); //Store for later channel volume updates
 
@@ -383,6 +387,7 @@ void Player::playTimerHandler(void)
 				chnvol = (u8)((state.channel_volume[channel]) * ((state.channel_env_vol[channel] << 8) / 0x210) / 0x1f);
 				}
 
+                        chnvol = (chnvol * songVolume) >> 8;
 			SCHANNEL_VOL(channel) = SOUND_VOL(chnvol);
 
 			if(state.channel_active[channel] == CHANNEL_TO_BE_DISABLED)
@@ -502,7 +507,7 @@ void Player::playRow(void)
 		//Skip new note if doing porta to note, we'll slide towards it instead
 		if((note!=EMPTY_NOTE)&&(note!=STOP_NOTE)&&(song->instruments[inst]!=0)&&(effect != EFFECT_PORTA_TONE)&&(test_delay != DELAY_CMD))
 		{
-			playNote(note, volume, channel, inst);
+			playNote(note, (volume * songVolume) >> 8, channel, inst);
 
 			state.channel_active[channel] = 1;
 			if(song->instruments[inst]->getSampleForNote(note)->getLoop() != 0) {
@@ -522,7 +527,7 @@ void Player::updateChannelVol(u8 volume, u8 channel)
 	if(volume == NO_VOLUME) {
 		return;
 	} else {
-		state.channel_volume[channel] = volume * state.channel_prev_sample_vol[channel] / 255;
+		state.channel_volume[channel] = (volume * state.channel_prev_sample_vol[channel]) >> 16;
 	}
 }
 
@@ -854,7 +859,7 @@ void Player::handleTickEffects(void)
 								u8 note   = song->patterns[state.pattern][channel][state.row].note;
 								u8 volume = song->patterns[state.pattern][channel][state.row].volume;
 								u8 inst   = song->patterns[state.pattern][channel][state.row].instrument;
-								playNote(note, volume, channel, inst);
+								playNote(note, (volume * songVolume) >> 8, channel, inst);
 
 								state.channel_active[channel] = 1;
 								if(song->instruments[inst]->getSampleForNote(note)->getLoop() != 0) {
