@@ -177,7 +177,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 
 Sample::~Sample()
 {
-	if(pingpong_data != 0)
+	if(pingpong_data)
 		removePingPongLoop();
 
 	free(sound_data);
@@ -353,10 +353,11 @@ bool Sample::setLoop(u8 loop_) // Set loop type. Can fail due to memory constrai
 	if(loop_ == loop)
 		return true;
 
+	if(loop_ >= LOOP_TYPE_COUNT)
+		loop_ = NO_LOOP;
+
 	if(loop == PING_PONG_LOOP) // Switching from ping-pong to sth else
-	{
 		removePingPongLoop();
-	}
 
 	loop = loop_;
 
@@ -368,13 +369,8 @@ bool Sample::setLoop(u8 loop_) // Set loop type. Can fail due to memory constrai
 
 	if(loop_ == PING_PONG_LOOP)
 	{
-		// Check if enough memory is available
-		u8 *testmem = (u8*)malloc(2*loop_length + size);
-		if(testmem == 0)
+		if (!setupPingPongLoop())
 			return false;
-		free(testmem);
-
-		setupPingPongLoop();
 	}
 
 	return true;
@@ -398,34 +394,20 @@ u32 Sample::getLoopStart(void)
 
 void Sample::setLoopStart(u32 _loop_start)
 {
-	u32 loop_length_in_samples;
-	if(is_16_bit)
-		loop_length_in_samples = loop_length / 2;
-	else
-		loop_length_in_samples = loop_length;
-
-	_loop_start = my_clamp(_loop_start, 0, n_samples-1);
-	loop_length_in_samples = my_clamp(loop_length_in_samples, 0, n_samples-1 - _loop_start);
-
-	setLoopStartAndLength(_loop_start, loop_length_in_samples);
+	setLoopStartAndLength(_loop_start, loop_length);
 }
 
 void Sample::setLoopLength(u32 _loop_length)
 {
-	u32 loop_start_in_samples;
-	if(is_16_bit)
-		loop_start_in_samples = loop_start / 2;
-	else
-		loop_start_in_samples = loop_start;
-
-	loop_start_in_samples = my_clamp(loop_start_in_samples, 0, n_samples-1);
-	u32 ll = my_clamp(_loop_length, 0, n_samples - loop_start_in_samples);
-
-	setLoopStartAndLength(loop_start_in_samples, ll);
+	setLoopStartAndLength(loop_start, _loop_length);
 }
 
 void Sample::setLoopStartAndLength(u32 _loop_start, u32 _loop_length)
 {
+	// Clamping
+	if(_loop_start >= n_samples) _loop_start = n_samples;
+	if(_loop_length >= (n_samples - _loop_start)) _loop_length = n_samples - _loop_start;
+
 	// NDS fix: If loop length is 0, it won't play the beginning of the sample until the loop
 	if(_loop_length == 0)
 		_loop_length = 2;
@@ -623,7 +605,7 @@ void Sample::fadeOut(u32 startsample, u32 endsample)
 		updatePingPongLoop();
 }
 
-void Sample::reverse(u32 startsample, u32 endsample)
+bool Sample::reverse(u32 startsample, u32 endsample)
 {
 	void *data = getData();
 	u32 nsamples = getNSamples();
@@ -634,20 +616,12 @@ void Sample::reverse(u32 startsample, u32 endsample)
 	s32 offset = startsample;
 	s32 length = endsample - startsample;
 
-	// Make sure there is enough RAM for this
-	void *testmem = malloc( (is_16_bit?2:1) * length);
-	if(testmem == NULL)
-	{
-		my_dprintf("Not enough memory for reversing\n");
-		return;
-	}
-	else
-		free(testmem);
-
 	// Do it!
 	if(is_16_bit == true)
 	{
 		s16 *new_sounddata = (s16*)malloc(2 * length);
+		if (new_sounddata == NULL)
+			return false;
 		s16 *sounddata = (s16*)(data);
 
 		// First reverse the selected region
@@ -663,6 +637,8 @@ void Sample::reverse(u32 startsample, u32 endsample)
 	} else {
 
 		s8 *new_sounddata = (s8*)malloc(length);
+		if (new_sounddata == NULL)
+			return false;
 		s8 *sounddata = (s8*)(data);
 
 		// First reverse the selected region
@@ -681,6 +657,8 @@ void Sample::reverse(u32 startsample, u32 endsample)
 
 	if( loop == PING_PONG_LOOP )
 		updatePingPongLoop();
+
+	return true;
 }
 
 
@@ -952,14 +930,16 @@ void Sample::fade(u32 startsample, u32 endsample, bool in)
 		updatePingPongLoop();
 }
 
-void Sample::setupPingPongLoop(void)
+bool Sample::setupPingPongLoop(void)
 {
 	original_data = sound_data; // "Backup"
 	original_n_samples = n_samples;
 
 	u32 original_size = size;
 
-	pingpong_data = realloc(pingpong_data, original_size + loop_length);
+	pingpong_data = malloc(original_size + loop_length);
+	if (!pingpong_data)
+		return false;
 
 	// Copy sound data until loop end
 	memcpy(pingpong_data, original_data, loop_start + loop_length);
@@ -1000,12 +980,16 @@ void Sample::setupPingPongLoop(void)
 	calcSize();
 
 	DC_FlushAll();
+	return true;
 }
 
 void Sample::removePingPongLoop(void)
 {
-	free(pingpong_data);
-	pingpong_data = 0;
+	if (pingpong_data)
+	{
+		free(pingpong_data);
+		pingpong_data = 0;
+	}
 
 	sound_data = original_data;
 	n_samples = original_n_samples;
@@ -1020,11 +1004,11 @@ void Sample::removePingPongLoop(void)
 	DC_FlushAll();
 }
 
-void Sample::updatePingPongLoop(void)
+bool Sample::updatePingPongLoop(void)
 {
-	if(pingpong_data != 0)
+	if(pingpong_data)
 		removePingPongLoop();
-	setupPingPongLoop();
+	return setupPingPongLoop();
 }
 
 #endif

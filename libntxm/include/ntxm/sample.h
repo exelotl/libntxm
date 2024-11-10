@@ -43,9 +43,13 @@
 
 #define NO_VOLUME				255
 
-#define NO_LOOP					0
-#define FORWARD_LOOP			1
-#define PING_PONG_LOOP			2
+enum LoopType
+{
+	NO_LOOP = 0,
+	FORWARD_LOOP = 1,
+	PING_PONG_LOOP = 2,
+	LOOP_TYPE_COUNT = 3
+};
 
 #define SAMPLE_NAME_LENGTH		24
 
@@ -104,7 +108,7 @@ class Sample
 
 		void fadeIn(u32 startsample, u32 endsample);
 		void fadeOut(u32 startsample, u32 endsample);
-		void reverse(u32 startsample, u32 endsample);
+		bool reverse(u32 startsample, u32 endsample);
 		void normalize(u16 percent, u32 startsample, u32 endsample);
 
 		// Draws a line into the sample
@@ -120,9 +124,9 @@ class Sample
 
 		void fade(u32 startsample, u32 endsample, bool in);
 
-		void setupPingPongLoop(void);
+		bool setupPingPongLoop(void);
 		void removePingPongLoop(void);
-		void updatePingPongLoop(void);
+		bool updatePingPongLoop(void);
 
 		void *sound_data;
 		void *original_data;
