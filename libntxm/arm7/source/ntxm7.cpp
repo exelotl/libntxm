@@ -98,8 +98,3 @@ void NTXM7::setPatternLoop(bool loopstate)
 {
 	player->setPatternLoop(loopstate);
 }
-
-void NTXM7::setPlayerVolume(u8 vol)
-{
-	player->setSongVolume(vol);
-}

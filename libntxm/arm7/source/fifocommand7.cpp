@@ -101,10 +101,6 @@ static void RecvCommandSetStereoOutput(SetStereoOutputCommand *c) {
     ntxm_stereo_output = c->state;
 }
 
-static void RecvCommandSetPlayerVolume(SetPlayerVolumeCommand *c) {
-    ntxm7->setPlayerVolume(c->vol);
-}
-
 void CommandDbgOut(const char *formatstr, ...)
 {
 #ifdef DEBUG
@@ -212,9 +208,6 @@ void CommandRecvHandler(int bytes, void *user_data) {
             break;
         case SET_STEREO_OUTPUT:
             RecvCommandSetStereoOutput(&command.setStereoOutput);
-            break;
-        case SET_PLAYER_VOLUME:
-            RecvCommandSetPlayerVolume(&command.setPlayerVolume);
             break;
         default:
             break;
