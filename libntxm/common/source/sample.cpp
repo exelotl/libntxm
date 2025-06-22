@@ -272,13 +272,13 @@ void Sample::bendNote(u8 note, u8 basenote, s16 _finetune, u8 channel)
 	// (The minimum value of relative note is -48)
 	u8 absolute_note = note + 48;
 	u8 realnote = (absolute_note+rel_note);
-  _finetune += finetune; //Need to offset by sample's finetune
+	_finetune += finetune; //Need to offset by sample's finetune
 	SCHANNEL_TIMER(channel) = SOUND_FREQ((int)LOOKUP_FREQ(realnote,_finetune));
 }
 
 void Sample::bendNoteDirect(s16 fine_step, u8 channel)
 {
-  CommandDbgOut("finestep: 0x%x channel: 0x%x\n", fine_step, channel);
+	CommandDbgOut("finestep: 0x%x channel: 0x%x\n", fine_step, channel);
 	SCHANNEL_TIMER(channel) = SOUND_FREQ((int)GET_FREQ_DIRECT(fine_step));
 }
 

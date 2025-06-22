@@ -105,9 +105,9 @@ static void RecvCommandSetStereoOutput(SetStereoOutputCommand *c) {
     ntxm_stereo_output = c->state;
 }
 
+#ifdef DEBUG
 void CommandDbgOut(const char *formatstr, ...)
 {
-#ifdef DEBUG
     NTXMFifoMessage command;
     command.commandType = DBG_OUT;
 
@@ -127,8 +127,8 @@ void CommandDbgOut(const char *formatstr, ...)
     va_end(marker);
 
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
-#endif
 }
+#endif
 
 void CommandUpdateRow(u16 row)
 {

@@ -62,17 +62,19 @@ struct SetSongCommand {
 };
 
 struct StartPlayCommand {
-    u8 potpos;
     u16 row;
+    u8 potpos;
     bool loop;
 };
 
 struct StopPlayCommand {
 };
 
+#ifdef DEBUG
 struct DbgOutCommand {
     char msg[DEBUGSTRSIZE];
 };
+#endif
 
 struct UpdateRowCommand {
     u16 row;
@@ -117,7 +119,9 @@ typedef struct NTXMFifoMessage {
         SetSongCommand         setSong;
         StartPlayCommand       startPlay;
         StopPlayCommand        stopPlay;
+#ifdef DEBUG
         DbgOutCommand          dbgOut;
+#endif
         UpdateRowCommand       updateRow;
         UpdatePotPosCommand    updatePotPos;
         PlayInstCommand        playInst;
@@ -156,7 +160,11 @@ void RegisterPotPosChangeCallback(void (*onPotPosChange_)(u16));
 #endif
 
 #if defined(ARM7)
+#ifdef DEBUG
 void CommandDbgOut(const char *formatstr, ...); // Print text from the ARM7, syntax like printf
+#else
+#define CommandDbgOut(...)
+#endif
 void CommandUpdateRow(u16 row);
 void CommandUpdatePotPos(u16 potpos);
 void CommandNotifyStop(void);
