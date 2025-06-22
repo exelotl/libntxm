@@ -84,8 +84,9 @@ void NTXM7::playNote(u8 instidx, u8 note, u8 volume, u8 channel)
 	player->playNote(note, volume, channel, instidx);
 }
 
-void NTXM7::stopNote(u8 note, u8 volume, u8 channel, u8 instidx) {
-	player->stopNote(note, volume, channel, instidx);
+void NTXM7::stopAllNotes(u8 note, u8 instidx)
+{
+	player->stopAllNotes(note, instidx);
 }
 
 void NTXM7::playSample(Sample *sample, u8 note, u8 volume, u8 channel)

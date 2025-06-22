@@ -205,16 +205,14 @@ void CommandStopInst(u8 channel)
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);
 }
 
-void CommandStopMidiInst(u8 inst, u8 note, u8 volume, u8 channel)
+void CommandStopMatchingInst(u8 inst, u8 note)
 {
     NTXMFifoMessage command;
-    command.commandType = STOP_MIDI_INST;
+    command.commandType = STOP_MATCHING_INST;
 
-    StopMidiInstCommand* c = &command.stopMidiInst;
+    StopMatchingInstCommand* c = &command.stopMatchingInst;
 
-    c->channel = channel;
     c->note = note;
-    c->volume = volume;
     c->inst = inst;
 
     fifoSendDatamsg(FIFO_NTXM, sizeof(command), (u8*)&command);

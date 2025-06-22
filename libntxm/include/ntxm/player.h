@@ -139,7 +139,8 @@ class Player {
 		// Play the given sample (and send a notification when done)
 		void playSample(Sample *sample, u8 note, u8 volume, u8 channel);
 
-		void stopNote(u8 note, u8 volume, u8 channel, u8 instidx);
+		// Find all matching notes currently being played by an instument, and stop it.
+		void stopAllNotes(u8 note, u8 instidx);
 
 		// Stop playback on a channel
 		void stopChannel(u8 channel);
