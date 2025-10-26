@@ -1,8 +1,8 @@
 
-              libntxm v0.2 - An XM Player Library for the Nintendo DS
-                                                             by 0xtob
+                   libntxm - An XM Player Library for the Nintendo DS
+                                                  originally by 0xtob
 
-                                    http://code.google.com/p/libntxm/
+                            https://github.com/NitrousTracker/libntxm
 
 WHAT'S THIS?
 ------------
@@ -30,37 +30,25 @@ LIMITATIONS
   instrument settings and the _supported_ effects:
 
   Unsupported instrument settings:
-    - Panning
-    - Fade out
-    - Vibrato
-    - Envelope sustain point
     - Envelope loop
+    - Fade out
+    - Panning
+    - Vibrato
 
   Supported effects:
     - Arpeggio
-    - Set loop
-    - Set volume
-    - Pattern break
     - Note cut
-    - Volume slide
+    - Note delay
+    - Pattern break
+    - Pattern delay
+    - Portamento
+    - Position jump
+    - Set loop
+    - Set pan
     - Set speed and tempo
-
-
-INSTALLATION
-------------
-
-  libntxm was developed using devkitARM r21 and libnds 20071023. It will
-  probably not work with earlier versions of these.
-
-  - Make sure you have the above mentioned versions of devkitARM and libnds
-    or higher, and make sure libfat is installed.
-
-  - Copy the include/ntxm folder to your libnds include path, such that
-    your include path has a subdirectory named ntxm that contains the
-    headers.
-
-  - Copy the contents of the lib folder (ntxm7.a and ntxm9.a) to your
-    libnds library path.
+    - Set volume
+    - Vibrato
+    - Volume slide
 
 
 USAGE
@@ -72,20 +60,12 @@ USAGE
   you need to have a file called test.xm on your card.
 
 
-NOTES
------
-
-  libntxm uses some memory behind the libnds IPC struct for exchanging
-  messages. Make sure that you are not already using that memory area
-  for your own purposes.
-
-
 DEVELOPMENT
 -----------
 
   You want to help by adding new features to the library? Great!
-  If you want to help out, please drop me a line first, so we can avoid
-  collisions :)
+
+  https://github.com/NitrousTracker/libntxm/issues
 
 
 VERSION HISTORY
@@ -97,13 +77,6 @@ VERSION HISTORY
 
  v0.1 (2007-04-15)
   - Initial Release
-
-CONTACT
--------
-
-  e-Mail: me@nitrotracker.tobw.net
-  IRC: _0xtob in #dsdev on Blitzed
-
 
 
 Happy coding!
