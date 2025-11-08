@@ -79,7 +79,8 @@ Instrument::Instrument(const char *_name, Sample *_sample, u8 _volume)
 Instrument::~Instrument()
 {
 	for(u8 i=0;i<n_samples;++i) {
-		delete samples[i];
+		if(samples[i] != NULL)
+			delete samples[i];
 	}
 	if(samples != NULL)
 		free(samples);
