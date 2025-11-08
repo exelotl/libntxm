@@ -180,7 +180,8 @@ Sample::~Sample()
 	if(pingpong_data)
 		removePingPongLoop();
 
-	free(sound_data);
+	if(sound_data)
+		free(sound_data);
 }
 
 void Sample::saveAsWav(char *filename)
@@ -525,7 +526,10 @@ void Sample::delPart(u32 startsample, u32 endsample)
 	// Special case: everything is deleted
 	if((startsample==0)&&(endsample==n_samples))
 	{
-		free(sound_data);
+		if(sound_data)
+			free(sound_data);
+		sound_data = NULL;
+
 		n_samples = 0;
 		calcSize();
 		loop_start = loop_length = 0;
