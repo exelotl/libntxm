@@ -66,7 +66,7 @@ Song::Song(u8 _speed, u8 _bpm, u8 _channels)
 	pattern_order_table = (u8*)malloc(sizeof(u8)*MAX_POT_LENGTH);
 	instruments = (Instrument**)calloc(1, sizeof(Instrument*)*MAX_INSTRUMENTS);
 	name = (char*)malloc(MAX_SONG_NAME_LENGTH+1);
-	memset(name, 0, MAX_SONG_NAME_LENGTH+1);
+	name[MAX_SONG_NAME_LENGTH] = 0;
 	strncpy(name, "unnamed", MAX_SONG_NAME_LENGTH);
 	
 	for(u16 i=0; i<MAX_PATTERNS; ++i) {
