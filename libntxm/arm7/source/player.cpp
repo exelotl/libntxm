@@ -373,8 +373,13 @@ void Player::playTimerHandler(void)
 		if(state.channel_active[channel])
 		{
 			Instrument *inst = song->getInstrument(state.channel_instrument[channel]);
-			inst->updateEnvelopePos(song->getBPM(), passed_time, channel, state.channel_note[channel]);
-			state.channel_env_vol[channel] = inst->getEnvelopeAmp(channel, state.channel_note[channel]);
+			if(inst != NULL)
+			{
+				inst->updateEnvelopePos(song->getBPM(), passed_time, channel, state.channel_note[channel]);
+				state.channel_env_vol[channel] = inst->getEnvelopeAmp(channel, state.channel_note[channel]);
+			}
+			else
+				state.channel_env_vol[channel] = 64;
 		}
 	}
 

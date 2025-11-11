@@ -149,6 +149,8 @@ u32 Song::getMsPerTick(void) {
 }
 
 Instrument *Song::getInstrument(u8 instidx) {
+	if (instidx == NO_INSTRUMENT)
+		return NULL;
 	return instruments[instidx];
 }
 
