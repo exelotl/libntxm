@@ -160,7 +160,7 @@ void Player::playNote(u8 note, u8 volume, u8 channel, u8 instidx)
 	if( (state.playing == true) && (song->channelMuted(channel) == true) )
 		return;
 
-	Instrument *inst = song->instruments[instidx];
+	Instrument *inst = song->getInstrument(instidx);
 
 	if(inst == 0)
 		return;
@@ -502,32 +502,37 @@ void Player::playRow(void)
 	// Play all notes in this row
 	for(u8 channel=0; channel < song->n_channels && channel<MAX_CHANNELS; ++channel)
 	{
-		u8 note   = song->patterns[state.pattern][channel][state.row].note;
-		u8 volume = song->patterns[state.pattern][channel][state.row].volume;
-		u8 inst   = song->patterns[state.pattern][channel][state.row].instrument;
-		u8 effect = song->patterns[state.pattern][channel][state.row].effect;
-		u8 param  = song->patterns[state.pattern][channel][state.row].effect_param;
+		u8 note    = song->patterns[state.pattern][channel][state.row].note;
+		u8 volume  = song->patterns[state.pattern][channel][state.row].volume;
+		u8 instidx = song->patterns[state.pattern][channel][state.row].instrument;
+		u8 effect  = song->patterns[state.pattern][channel][state.row].effect;
+		u8 param   = song->patterns[state.pattern][channel][state.row].effect_param;
 		u16 test_delay = (((effect << 8) & 0x0f00) | (param & 0xf0));
 
-		if(inst == NO_INSTRUMENT)
-			inst = state.channel_instrument[channel];
+		if(instidx == NO_INSTRUMENT)
+			instidx = state.channel_instrument[channel];
 		else
-			state.channel_instrument[channel] = inst;
+			state.channel_instrument[channel] = instidx;
 
 		effect = (effect >> 4) & 0xf;
 
 		//Skip new note if doing porta to note, we'll slide towards it instead
-		if((note!=EMPTY_NOTE)&&(note!=STOP_NOTE)&&(song->instruments[inst]!=0)&&(effect != EFFECT_PORTA_TONE)&&(test_delay != DELAY_CMD))
+		if((note!=EMPTY_NOTE)&&(note!=STOP_NOTE)&&(effect != EFFECT_PORTA_TONE)&&(test_delay != DELAY_CMD))
 		{
-			playNote(note, volume, channel, inst);
+			Instrument *inst = song->getInstrument(instidx);
+			if(inst != NULL) {
+				auto smp = inst->getSampleForNote(note);
 
-			state.channel_active[channel] = 1;
-			if(song->instruments[inst]->getSampleForNote(note)->getLoop() != 0) {
-				state.channel_loop[channel] = true;
-				state.channel_ms_left[channel] = 0;
-			} else {
-				state.channel_loop[channel] = false;
-				state.channel_ms_left[channel] = song->instruments[inst]->calcPlayLength(note);
+				playNote(note, volume, channel, instidx);
+
+				state.channel_active[channel] = 1;
+				if(smp != NULL && smp->getLoop() != 0) {
+					state.channel_loop[channel] = true;
+					state.channel_ms_left[channel] = 0;
+				} else {
+					state.channel_loop[channel] = false;
+					state.channel_ms_left[channel] = inst->calcPlayLength(note);
+				}
 			}
 		}
 		updateChannelVol(volume, channel);
@@ -554,7 +559,7 @@ void Player::handleEffects(void)
 		u8 effect = song->patterns[state.pattern][channel][state.row].effect;
 		u8 param  = song->patterns[state.pattern][channel][state.row].effect_param;
 		u8 instidx = state.channel_instrument[channel];
-		Instrument *inst = song->instruments[instidx];
+		Instrument *inst = song->getInstrument(instidx);
 		
 		if(effect != NO_EFFECT)
 		{
@@ -659,6 +664,8 @@ void Player::handleEffects(void)
 
 				case EFFECT_PORTA_UP:
 				{
+					if (inst == NULL)
+						continue;
 					state.channel_porta_increment[channel] = (u16) param;
 					if (state.channel_porta_enabled[channel] == false)
 					{
@@ -675,6 +682,8 @@ void Player::handleEffects(void)
 
 				case EFFECT_PORTA_DOWN:
 				{
+					if (inst == NULL)
+						continue;
 					state.channel_porta_increment[channel] = (u16) param;
 					if (state.channel_porta_enabled[channel] == false)
 					{
@@ -691,6 +700,8 @@ void Player::handleEffects(void)
 
 				case EFFECT_PORTA_TONE:
 				{
+					if (inst == NULL)
+						continue;
 					state.channel_porta_increment[channel] = (u16) param;
 					if (state.channel_porta_enabled[channel] == false)
 					{
@@ -730,6 +741,8 @@ void Player::handleEffects(void)
 
 				case EFFECT_SET_PAN:
 				{
+					if (inst == NULL)
+						continue;
 					u8 inst = state.channel_instrument[channel];
 					u8 note = state.channel_note[channel];
 					song->instruments[inst]->getSampleForNote(note)->setPanning(param);
@@ -748,7 +761,7 @@ void Player::handleTickEffects(void)
 		u8 effect  = song->patterns[state.pattern][channel][state.row].effect;
 		u8 param   = song->patterns[state.pattern][channel][state.row].effect_param;
 		u8 instidx = state.channel_instrument[channel];
-		Instrument *inst = song->instruments[instidx];
+		Instrument *inst = song->getInstrument(instidx);
 
 		if(effect != NO_EFFECT)
 		{
@@ -763,7 +776,7 @@ void Player::handleTickEffects(void)
 					halftone2 = (param & 0xF0) >> 4;
 					halftone1 = param & 0x0F;
 
-					if (inst == 0)
+					if (inst == NULL)
 						continue;
 
 					switch(state.row_ticks % 3)
@@ -784,9 +797,12 @@ void Player::handleTickEffects(void)
 
 					break;
 				}
-				
+
 				case(EFFECT_PORTA_UP):
 				{
+					if (inst == NULL)
+						continue;
+
 					state.channel_porta_accumulator[channel] += state.channel_porta_increment[channel];
 					if (state.channel_porta_accumulator[channel] > 19968)
 					{
@@ -798,6 +814,9 @@ void Player::handleTickEffects(void)
 
 				case(EFFECT_PORTA_DOWN):
 				{
+					if (inst == NULL)
+						continue;
+
 					state.channel_porta_accumulator[channel] -= state.channel_porta_increment[channel];
 					if (state.channel_porta_accumulator[channel] < 0)
 					{
@@ -809,6 +828,9 @@ void Player::handleTickEffects(void)
 
 				case(EFFECT_PORTA_TONE):
 				{
+					if (inst == NULL)
+						continue;
+
 					if (state.channel_porta_up[channel] == true)
 					{
 						state.channel_porta_accumulator[channel] += state.channel_porta_increment[channel];
@@ -839,6 +861,9 @@ void Player::handleTickEffects(void)
 
 				case(EFFECT_VIBRATO):
 				{
+					if (inst == NULL)
+						continue;
+
 					u8 note = state.channel_note[channel];
 					u8 vib_depth = (param & 0x0f);
 					s16 fine = ((s16)(vibrato_sine_table[state.channel_vib_accumulator[channel]] * vib_depth) / 2);
@@ -863,9 +888,12 @@ void Player::handleTickEffects(void)
 							}
 							break;
 						}
-						
+
 						case(EFFECT_E_NOTE_DELAY):
 						{
+							if (inst == NULL)
+								continue;
+
 							if (state.row_ticks == (e_effect_param))
 							{
 								u8 note   = song->patterns[state.pattern][channel][state.row].note;
@@ -928,7 +956,7 @@ void Player::finishEffects(void)
 		u8 effect = state.channel_effect[channel];
 		u8 new_effect = song->patterns[state.pattern][channel][state.row].effect;
 		u8 instidx = state.channel_instrument[channel];
-		Instrument *inst = song->instruments[instidx];
+		Instrument *inst = song->getInstrument(instidx);
 
 		if( (effect != NO_EFFECT) && (new_effect != effect) )
 		{
@@ -936,7 +964,7 @@ void Player::finishEffects(void)
 			{
 				case(EFFECT_ARPEGGIO):
 				{
-					if (inst == 0)
+					if (inst == NULL)
 						continue;
 
 					// Reset note
@@ -958,7 +986,7 @@ void Player::finishEffects(void)
 				
 				case(EFFECT_VIBRATO):
 				{
-					if (inst== 0)
+					if (inst == NULL)
 						continue;
 					resetVibrato(channel);
 					break;
@@ -1021,11 +1049,11 @@ void Player::initEffState(void)
 
 void Player::initDefaultPanning(void)
 {
-  u8 instidx = song->getInstruments();
+	u8 instcount = song->getInstruments();
 	u16 smpidx = 0;
 	Instrument *inst;
 	
-	for ( u8 i = 0; i < instidx; i++)
+	for ( u8 i = 0; i < instcount; i++)
 	{
 		inst = song->instruments[i];
 		smpidx = inst->getSamples();
@@ -1038,12 +1066,12 @@ void Player::initDefaultPanning(void)
 
 void Player::resetPanning(void)
 {
-  u8 instidx = song->getInstruments();
+	u8 instcount = song->getInstruments();
 	u16 smpidx = 0;
 	Instrument *inst;
 	u8 base_pan = 0;
 
-	for ( u8 i = 0; i < instidx; i++)
+	for ( u8 i = 0; i < instcount; i++)
 	{
 		inst = song->instruments[i];
 		smpidx = inst->getSamples();
