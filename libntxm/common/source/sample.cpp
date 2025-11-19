@@ -988,11 +988,6 @@ void Sample::removePingPongLoop(void)
 	sound_data = original_data;
 	n_samples = original_n_samples;
 
-	if(is_16_bit)
-		size = n_samples*2;
-	else
-		size = n_samples;
-
 	calcSize();
 
 	DC_FlushAll();
