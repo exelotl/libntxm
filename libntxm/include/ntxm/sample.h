@@ -83,10 +83,8 @@ class Sample
 		bool setLoop(u8 loop_); // Set loop type. Can fail due to memory constraints
 		bool is16bit(void);
 
-		void setLoopLength(u32 _loop_length);
-		u32 getLoopLength(void);
-		void setLoopStart(u32 _loop_start);
-		u32 getLoopStart(void);
+		u32 getLoopStart(void); // in samples
+		u32 getLoopLength(void); // in samples
 
 		// Sets loop start and length, arguments are given in samples
 		void setLoopStartAndLength(u32 _loop_start, u32 _loop_length);

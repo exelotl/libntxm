@@ -168,8 +168,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 		}
 	}
 
-	setLoopStart(wav.getLoopStart());
-	setLoopLength(wav.getLoopEnd() - wav.getLoopStart() + 1);
+	setLoopStartAndLength(wav.getLoopStart(), wav.getLoopEnd() - wav.getLoopStart() + 1);
 	setLoop(wav.getLoopType());
 
 	*_success = true;
@@ -364,8 +363,7 @@ bool Sample::setLoop(u8 loop_) // Set loop type. Can fail due to memory constrai
 
 	if(loop_ == NO_LOOP)
 	{
-		setLoopStart(0);
-		setLoopLength(n_samples);
+		setLoopStartAndLength(0, n_samples);
 	}
 
 	if(loop_ == PING_PONG_LOOP)
@@ -392,34 +390,6 @@ u32 Sample::getLoopStart(void)
 }
 
 #ifdef ARM9
-
-void Sample::setLoopStart(u32 _loop_start)
-{
-	u32 loop_length_in_samples;
-	if(is_16_bit)
-		loop_length_in_samples = loop_length / 2;
-	else
-		loop_length_in_samples = loop_length;
-
-	_loop_start = ntxm_clamp(_loop_start, 0, n_samples-1);
-	loop_length_in_samples = ntxm_clamp(loop_length_in_samples, 0, n_samples-1 - _loop_start);
-
-	setLoopStartAndLength(_loop_start, loop_length_in_samples);
-}
-
-void Sample::setLoopLength(u32 _loop_length)
-{
-	u32 loop_start_in_samples;
-	if(is_16_bit)
-		loop_start_in_samples = loop_start / 2;
-	else
-		loop_start_in_samples = loop_start;
-
-	loop_start_in_samples = ntxm_clamp(loop_start_in_samples, 0, n_samples-1);
-	u32 ll = ntxm_clamp(_loop_length, 0, n_samples - loop_start_in_samples);
-
-	setLoopStartAndLength(loop_start_in_samples, ll);
-}
 
 void Sample::setLoopStartAndLength(u32 _loop_start, u32 _loop_length)
 {
