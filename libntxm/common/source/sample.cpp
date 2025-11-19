@@ -74,7 +74,7 @@ inline u32 linear_freq_table_lookup(u32 note)
 			//	     );
 			#endif
 			#ifdef ARM9
-			my_dprintf("%u %u\n",octaveoffset,relnote);
+			ntxm_dprintf("%u %u\n",octaveoffset,relnote);
 			#endif
 			return linear_freq_table[relnote] >> octaveoffset;
 		}
@@ -121,7 +121,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 
 	if(!wav.load(filename))
 	{
-		my_dprintf("WAV loading failed\n");
+		ntxm_dprintf("WAV loading failed\n");
 		*_success = false;
 		return;
 	}
@@ -162,7 +162,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 	{
 		if(!convertStereoToMono())
 		{
-			my_dprintf("Stereo 2 Mono conversion failed\n");
+			ntxm_dprintf("Stereo 2 Mono conversion failed\n");
 			*_success = false;
 			return;
 		}
@@ -401,8 +401,8 @@ void Sample::setLoopStart(u32 _loop_start)
 	else
 		loop_length_in_samples = loop_length;
 
-	_loop_start = my_clamp(_loop_start, 0, n_samples-1);
-	loop_length_in_samples = my_clamp(loop_length_in_samples, 0, n_samples-1 - _loop_start);
+	_loop_start = ntxm_clamp(_loop_start, 0, n_samples-1);
+	loop_length_in_samples = ntxm_clamp(loop_length_in_samples, 0, n_samples-1 - _loop_start);
 
 	setLoopStartAndLength(_loop_start, loop_length_in_samples);
 }
@@ -415,8 +415,8 @@ void Sample::setLoopLength(u32 _loop_length)
 	else
 		loop_start_in_samples = loop_start;
 
-	loop_start_in_samples = my_clamp(loop_start_in_samples, 0, n_samples-1);
-	u32 ll = my_clamp(_loop_length, 0, n_samples - loop_start_in_samples);
+	loop_start_in_samples = ntxm_clamp(loop_start_in_samples, 0, n_samples-1);
+	u32 ll = ntxm_clamp(_loop_length, 0, n_samples - loop_start_in_samples);
 
 	setLoopStartAndLength(loop_start_in_samples, ll);
 }
@@ -698,7 +698,7 @@ void Sample::normalize(u16 percent, u32 startsample, u32 endsample)
 		for(u32 i=startsample;i<endsample;++i) {
 			smp = (s32)percent * (s32)sounddata[i] / 100;
 
-			smp = my_clamp(smp, -32768, 32767);
+			smp = ntxm_clamp(smp, -32768, 32767);
 
 			sounddata[i] = smp;
 		}
@@ -711,7 +711,7 @@ void Sample::normalize(u16 percent, u32 startsample, u32 endsample)
 		for(u32 i=startsample;i<endsample;++i) {
 			smp = (s32)percent * (s32)sounddata[i] / 100;
 
-			smp = my_clamp(smp, -128, 127);
+			smp = ntxm_clamp(smp, -128, 127);
 
 			sounddata[i] = smp;
 		}
@@ -723,12 +723,12 @@ void Sample::normalize(u16 percent, u32 startsample, u32 endsample)
 
 void Sample::drawLine(int x1, int y1, int x2, int y2)
 {
-	x1 = my_clamp(x1, 0, n_samples-1);
-	x2 = my_clamp(x2, 0, n_samples-1);
+	x1 = ntxm_clamp(x1, 0, n_samples-1);
+	x2 = ntxm_clamp(x2, 0, n_samples-1);
 	int minval = is_16_bit?-32768:-128;
 	int maxval = is_16_bit?32767:127;
-	y1 = my_clamp(y1, minval, maxval);
-	y2 = my_clamp(y2, minval, maxval);
+	y1 = ntxm_clamp(y1, minval, maxval);
+	y2 = ntxm_clamp(y2, minval, maxval);
 
 	void *data = getData();
 	s16 *sounddata16 = (s16*)(data);
@@ -862,7 +862,7 @@ bool Sample::convertStereoToMono(void)
 	void *_tmpbuf = malloc(size);
 	if(!_tmpbuf)
 	{
-		my_dprintf("not enough ram for stereo 2 mono conversion\n");
+		ntxm_dprintf("not enough ram for stereo 2 mono conversion\n");
 		return false;
 	}
 

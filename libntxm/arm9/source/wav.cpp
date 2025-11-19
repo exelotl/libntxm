@@ -173,7 +173,7 @@ bool Wav::load(const char *filename)
 
 			audio_data_ = (u8*)malloc(chunk_size);
 			if(audio_data_ == 0) {
-				my_dprintf("Could not alloc mem(%ld) for wav.\n", chunk_size);
+				ntxm_dprintf("Could not alloc mem(%ld) for wav.\n", chunk_size);
 				fclose(fileh);
 				return false;
 			}
@@ -275,7 +275,7 @@ bool Wav::save(const char *filename)
 
 	fwrite(&data_chunk_size, 4, 1, fileh);
 
-	my_dprintf("rate: %u\ndata: %lu\n", sampling_rate_, data_chunk_size);
+	ntxm_dprintf("rate: %u\ndata: %lu\n", sampling_rate_, data_chunk_size);
 
 	if(bit_per_sample == 8)
 	{
