@@ -465,6 +465,22 @@ const char *Sample::getName(void)
 
 #ifdef ARM9
 
+
+void Sample::delAll(void)
+{
+	if(sound_data)
+		ntxm_free(sound_data);
+	sound_data = NULL;
+
+	n_samples = 0;
+
+	loop = NO_LOOP;
+	loop_start = loop_length = 0;
+	
+	onSampleDataChanged();
+	return;
+}
+
 // Deletes the part between start sample and end sample
 void Sample::delPart(u32 startsample, u32 endsample)
 {
@@ -472,15 +488,9 @@ void Sample::delPart(u32 startsample, u32 endsample)
 		endsample = n_samples-1;
 
 	// Special case: everything is deleted
-	if((startsample==0)&&(endsample==n_samples))
+	if((startsample==0)&&(endsample==n_samples-1))
 	{
-		if(sound_data)
-			ntxm_free(sound_data);
-		sound_data = NULL;
-
-		n_samples = 0;
-		calcSize();
-		loop_start = loop_length = 0;
+		delAll();
 		return;
 	}
 
