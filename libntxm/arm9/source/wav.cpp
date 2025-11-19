@@ -171,7 +171,7 @@ bool Wav::load(const char *filename)
 				n_samples_ = chunk_size * 2 * sample_size;
 			}
 
-			audio_data_ = (u8*)malloc(chunk_size);
+			audio_data_ = (u8*)ntxm_umalloc(chunk_size);
 			if(audio_data_ == 0) {
 				ntxm_dprintf("Could not alloc mem(%ld) for wav.\n", chunk_size);
 				fclose(fileh);

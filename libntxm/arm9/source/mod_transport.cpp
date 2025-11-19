@@ -190,14 +190,14 @@ u16 ModTransport::load(const char *filename, Song **_song)
 			}
 		}
 		
-		free(ptn_data);
+		ntxm_free(ptn_data);
 	}
 	
 	// ......................
 	
 	
 	for(u8 smp=0; smp<31; ++smp)
-		free(sample[smp]);
+		ntxm_free(sample[smp]);
 	
 	ntxm_dprintf("MOD Loaded.\n");
 	

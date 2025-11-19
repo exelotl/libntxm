@@ -34,8 +34,6 @@
 #include <string.h>
 #include <malloc.h>
 #include <nds.h>
-
-#include "ntxm/ntxmtools.h"
 #include <sys/statvfs.h>
 
 __attribute__((noreturn))
@@ -102,6 +100,8 @@ void __ntxm_free(void *ptr, const char *file, int line) {
 #endif
 	free(ptr);
 }
+
+#include "ntxm/ntxmtools.h"
 
 #ifdef ARM9
 

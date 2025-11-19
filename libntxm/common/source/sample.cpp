@@ -117,7 +117,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 	:original_data(0), pingpong_data(0), loop(_loop), loop_start(0), loop_length(0), volume(255),
 	panning(128), base_panning(128)
 {
-	sound_data = (void**)calloc(20*sizeof(void*), 1);
+	sound_data = (void**)ntxm_ccalloc(20*sizeof(void*), 1);
 
 	if(!wav.load(filename))
 	{
@@ -130,7 +130,7 @@ Sample::Sample(const char *filename, u8 _loop, bool *_success)
 	strncpy(name, smpname, SAMPLE_NAME_LENGTH);
 	name[SAMPLE_NAME_LENGTH] = 0;
 
-	if (sound_data) free(sound_data);
+	if (sound_data) ntxm_free(sound_data);
 	sound_data = wav.getAudioData();
 
 	calcRelnoteAndFinetune( wav.getSamplingRate() );
@@ -181,7 +181,7 @@ Sample::~Sample()
 		removePingPongLoop();
 
 	if(sound_data)
-		free(sound_data);
+		ntxm_free(sound_data);
 }
 
 void Sample::saveAsWav(char *filename)
@@ -527,7 +527,7 @@ void Sample::delPart(u32 startsample, u32 endsample)
 	if((startsample==0)&&(endsample==n_samples))
 	{
 		if(sound_data)
-			free(sound_data);
+			ntxm_free(sound_data);
 		sound_data = NULL;
 
 		n_samples = 0;
@@ -546,7 +546,7 @@ void Sample::delPart(u32 startsample, u32 endsample)
 	{
 		memmove((u8*)sound_data + startsample * bps, (u8*)sound_data + (endsample + 1) * bps, ((n_samples - 1) - endsample) * bps);
 	}
-	sound_data = realloc(sound_data, new_n_samples * bps);
+	sound_data = ntxm_crealloc(sound_data, new_n_samples * bps);
 
 	n_samples = new_n_samples;
 
@@ -643,7 +643,7 @@ bool Sample::reverse(u32 startsample, u32 endsample)
 	// Do it!
 	if(is_16_bit == true)
 	{
-		s16 *new_sounddata = (s16*)malloc(2 * length);
+		s16 *new_sounddata = (s16*)ntxm_umalloc(2 * length);
 		if (new_sounddata == NULL)
 			return false;
 		s16 *sounddata = (s16*)(data);
@@ -656,11 +656,11 @@ bool Sample::reverse(u32 startsample, u32 endsample)
 		// Then copy it into the sample
 		memcpy(sounddata + offset, new_sounddata, 2 * length);
 
-		free(new_sounddata);
+		ntxm_free(new_sounddata);
 
 	} else {
 
-		s8 *new_sounddata = (s8*)malloc(length);
+		s8 *new_sounddata = (s8*)ntxm_umalloc(length);
 		if (new_sounddata == NULL)
 			return false;
 		s8 *sounddata = (s8*)(data);
@@ -673,7 +673,7 @@ bool Sample::reverse(u32 startsample, u32 endsample)
 		// Then copy it into the sample
 		memcpy(sounddata + offset, new_sounddata, length);
 
-		free(new_sounddata);
+		ntxm_free(new_sounddata);
 	}
 
 	// Now everything's clear and we set the variables right
@@ -859,7 +859,7 @@ u16 Sample::findClosestFreq(u32 freq)
 
 bool Sample::convertStereoToMono(void)
 {
-	void *_tmpbuf = malloc(size);
+	void *_tmpbuf = ntxm_umalloc(size);
 	if(!_tmpbuf)
 	{
 		ntxm_dprintf("not enough ram for stereo 2 mono conversion\n");
@@ -883,7 +883,7 @@ bool Sample::convertStereoToMono(void)
 		memcpy(sound_data, tmpbuf, size);
 
 		// Delete the temporary buffer
-		free(tmpbuf);
+		ntxm_free(tmpbuf);
 	}
 	else
 	{
@@ -902,7 +902,7 @@ bool Sample::convertStereoToMono(void)
 		memcpy(sound_data, tmpbuf, size);
 
 		// Delete the temporary buffer
-		free(tmpbuf);
+		ntxm_free(tmpbuf);
 	}
 	return true;
 }
@@ -961,7 +961,7 @@ bool Sample::setupPingPongLoop(void)
 
 	u32 original_size = size;
 
-	pingpong_data = malloc(original_size + loop_length);
+	pingpong_data = ntxm_umalloc(original_size + loop_length);
 	if (!pingpong_data)
 		return false;
 
@@ -1011,7 +1011,7 @@ void Sample::removePingPongLoop(void)
 {
 	if (pingpong_data)
 	{
-		free(pingpong_data);
+		ntxm_free(pingpong_data);
 		pingpong_data = 0;
 	}
 

@@ -253,7 +253,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 
 		if(patterndata_size > 0) { // Read the pattern
 
-			u8 *ptn_data = (u8*)memalign(2, patterndata_size);
+			u8 *ptn_data = (u8*)ntxm_umemalign(2, patterndata_size);
 			if (ptn_data == NULL) {
 				fclose(xmfile);
 				ntxm_dprintf("memfull on line %d\n", __LINE__);
@@ -266,7 +266,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 			bytes_read = fread(ptn_data, 1, patterndata_size, xmfile);
 
 			if(bytes_read != patterndata_size) {
-				free(ptn_data);
+				ntxm_free(ptn_data);
 				fclose(xmfile);
 				ntxm_dprintf("pattern read error.\nread:%lu (should be %u)\n", bytes_read, patterndata_size);
 				delete song;
@@ -428,7 +428,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 
 			}
 
-			free(ptn_data);
+			ntxm_free(ptn_data);
 
 		} else { // Make an empty pattern
 
@@ -447,7 +447,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 
 	for(u8 inst=0; inst<n_inst; ++inst)
 	{
-		struct InstInfo *instinfo = (struct InstInfo*)calloc(1, sizeof(struct InstInfo));
+		struct InstInfo *instinfo = (struct InstInfo*)ntxm_ucalloc(1, sizeof(struct InstInfo));
 		if (instinfo == NULL) {
 			fclose(xmfile);
 			ntxm_dprintf("memfull on line %d\n", __LINE__);
@@ -465,7 +465,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 		Instrument *instrument = new Instrument(instinfo->name);
 		if(instrument == 0)
 		{
-			free(instinfo);
+			ntxm_free(instinfo);
 			fclose(xmfile);
 			ntxm_dprintf("memfull on line %d\n", __LINE__);
 			delete song;
@@ -525,9 +525,9 @@ u16 XMTransport::load(const char *filename, Song **_song)
 			// Load the sample(s)
 
 			// Headers
-			u8 *sample_headers = (u8*)memalign(2, instinfo->n_samples*40);
+			u8 *sample_headers = (u8*)ntxm_umemalign(2, instinfo->n_samples*40);
 			if (sample_headers == NULL) {
-				free(instinfo);
+				ntxm_free(instinfo);
 				fclose(xmfile);
 				ntxm_dprintf("memfull on line %d\n", __LINE__);
 				delete song;
@@ -611,12 +611,12 @@ u16 XMTransport::load(const char *filename, Song **_song)
 				void *sample_data = 0;
 				if(sample_length > 0)
 				{
-					sample_data = memalign(2, sample_length);
+					sample_data = ntxm_umemalign(2, sample_length);
 
 					if(sample_data==NULL)
 					{
-						free(sample_headers);
-						free(instinfo);
+						ntxm_free(sample_headers);
+						ntxm_free(instinfo);
 						fclose(xmfile);
 						ntxm_dprintf("memfull on line %d\n", __LINE__);
 						delete song;
@@ -657,9 +657,9 @@ u16 XMTransport::load(const char *filename, Song **_song)
 				Sample *sample = new Sample(sample_data, n_samples, 8363, sample_is_16_bit);
 				if(sample==NULL)
 				{
-					free(sample_data);
-					free(sample_headers);
-					free(instinfo);
+					ntxm_free(sample_data);
+					ntxm_free(sample_headers);
+					ntxm_free(instinfo);
 					fclose(xmfile);
 					ntxm_dprintf("memfull on line %d\n", __LINE__);
 					delete song;
@@ -679,7 +679,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 				ntxm_dprintf("Sample loaded\n");
 			}
 
-			free(sample_headers);
+			ntxm_free(sample_headers);
 
 			//ntxm_dprintf("inst loaded\n");
 
@@ -691,7 +691,7 @@ u16 XMTransport::load(const char *filename, Song **_song)
 			fseek(xmfile, instinfo->inst_size-29, SEEK_CUR);
 		}
 
-		free(instinfo);
+		ntxm_free(instinfo);
 	}
 
 	ntxm_dprintf("XM Loaded.\n");
@@ -1007,7 +1007,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 
 			// Second part of inst header:
 
-			struct InstInfo *instinfo = (InstInfo*)calloc(1, sizeof(InstInfo));
+			struct InstInfo *instinfo = (InstInfo*)ntxm_ucalloc(1, sizeof(InstInfo));
 			if (instinfo == NULL) {
 				if (empty_inst) delete instrument;
 				fclose(xmfile);
@@ -1086,7 +1086,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 			fwrite( &instinfo->vol_fadeout, 2, 1, xmfile);
 			fwrite( &instinfo->reserved_bytes, 11, 1, xmfile);
 
-			free(instinfo);
+			ntxm_free(instinfo);
 
 			Sample *sample = 0;
 
@@ -1166,7 +1166,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 				fwrite(sample_name, 1, 22, xmfile);
 
 				if(empty_sample == true)
-					free(sample);
+					ntxm_free(sample);
 			}
 
 			// Write sample data
@@ -1220,7 +1220,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 				} else {
 
 					s8 *sample_data = (s8*)sample->getData();
-					s8 *sample_data_enc = (s8*)malloc( sample->getSize() );
+					s8 *sample_data_enc = (s8*)ntxm_umalloc( sample->getSize() );
 
 					if(sample_data_enc != 0)
 					{
@@ -1233,7 +1233,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 
 						fwrite(sample_data_enc, 1, sample->getSize(), xmfile);
 
-						free(sample_data_enc);
+						ntxm_free(sample_data_enc);
 					}
 					else
 					{
@@ -1251,7 +1251,7 @@ u16 XMTransport::save(const char *filename, Song *song)
 				}
 
 				if(empty_sample == true)
-					free(sample);
+					ntxm_free(sample);
 
 			}
 		}
