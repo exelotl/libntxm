@@ -471,13 +471,6 @@ void Sample::delPart(u32 startsample, u32 endsample)
 	if(endsample >= n_samples)
 		endsample = n_samples-1;
 
-	bool restore_ping_pong = false;
-	if(loop == PING_PONG_LOOP)
-	{
-		setLoop(NO_LOOP);
-		restore_ping_pong = true;
-	}
-
 	// Special case: everything is deleted
 	if((startsample==0)&&(endsample==n_samples))
 	{
@@ -549,23 +542,8 @@ void Sample::delPart(u32 startsample, u32 endsample)
 		}
 	}
 
-	u32 size = getSize();
-	if(loop_start > size)
-	{
-		loop_start = size;
-	}
-	if(loop_start + loop_length > size)
-	{
-		 loop_length = size - loop_start;
-	}
-	if(loop_start == loop_length)
-	{
-		loop_start = 0;
-		loop_length = size;
-	}
-
-	if(restore_ping_pong)
-		setLoop(PING_PONG_LOOP);
+	setLoopStartAndLength(getLoopStart(), getLoopLength());
+	onSampleDataChanged();
 }
 
 void Sample::fadeIn(u32 startsample, u32 endsample)
