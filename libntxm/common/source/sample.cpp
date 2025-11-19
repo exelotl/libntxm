@@ -99,7 +99,7 @@ inline u32 linear_freq_table_lookup(u32 note)
 
 Sample::Sample(void *_sound_data, u32 _n_samples, u16 _sampling_frequency, bool _is_16_bit,
 	u8 _loop, u8 _volume)
-	:original_data(0), pingpong_data(0), n_samples(_n_samples), is_16_bit(_is_16_bit), loop(_loop),
+	:pingpong_data(0), n_samples(_n_samples), is_16_bit(_is_16_bit), loop(_loop),
 	loop_start(0), loop_length(0), volume(_volume), panning(128), base_panning(128)
 {
 	sound_data = _sound_data;
@@ -114,7 +114,7 @@ Sample::Sample(void *_sound_data, u32 _n_samples, u16 _sampling_frequency, bool 
 }
 
 Sample::Sample(const char *filename, u8 _loop, bool *_success)
-	:original_data(0), pingpong_data(0), loop(_loop), loop_start(0), loop_length(0), volume(255),
+	:pingpong_data(0), loop(_loop), loop_start(0), loop_length(0), volume(255),
 	panning(128), base_panning(128)
 {
 	sound_data = (void**)ntxm_ccalloc(20*sizeof(void*), 1);
@@ -240,20 +240,22 @@ void Sample::play(u8 note, u8 volume_ , u8 channel)
 
 	SCHANNEL_CR(channel) = 0;
 	SCHANNEL_TIMER(channel) = SOUND_FREQ((int)LOOKUP_FREQ(realnote,finetune));
-	SCHANNEL_SOURCE(channel) = (uint32)sound_data;
 
 	if( loop == NO_LOOP )
 	{
+		SCHANNEL_SOURCE(channel) = (uint32)sound_data;
 		SCHANNEL_REPEAT_POINT(channel) = 0;
 		SCHANNEL_LENGTH(channel) = size >> 2;
 	}
-	else if( loop == FORWARD_LOOP )
+	else if( loop == FORWARD_LOOP || (loop == PING_PONG_LOOP && !pingpong_data) )
 	{
+		SCHANNEL_SOURCE(channel) = (uint32)sound_data;
 		SCHANNEL_REPEAT_POINT(channel) = loop_start >> 2;
 		SCHANNEL_LENGTH(channel) = loop_length >> 2;
 	}
 	else if( loop == PING_PONG_LOOP )
 	{
+		SCHANNEL_SOURCE(channel) = (uint32)pingpong_data;
 		SCHANNEL_REPEAT_POINT(channel) = loop_start >> 2;
 		SCHANNEL_LENGTH(channel) = loop_length >> 1;
 	}
@@ -313,33 +315,17 @@ s8 Sample::getFinetune(void) {
 
 u32 Sample::getSize(void)
 {
-	if(loop == PING_PONG_LOOP)
-	{
-		if(is_16_bit) {
-			return original_n_samples * 2;
-		} else {
-			return original_n_samples;
-		}
-	} else {
-		return size;
-	}
+	return size;
 }
 
 u32 Sample::getNSamples(void)
 {
-	if(loop == PING_PONG_LOOP)
-		return original_n_samples;
-	else
-		return n_samples;
+	return n_samples;
 }
 
 void *Sample::getData(void)
 {
-	// sound_data is modified for the loop, but original_data points to the unmodified sound data
-	if(loop == PING_PONG_LOOP)
-		return original_data;
-	else
-		return sound_data;
+	return sound_data;
 }
 
 u8 Sample::getLoop(void) {
@@ -414,8 +400,7 @@ void Sample::setLoopStartAndLength(u32 _loop_start, u32 _loop_length)
 		loop_start = _loop_start;
 	}
 
-	if(loop == PING_PONG_LOOP)
-		updatePingPongLoop();
+	onSampleDataChanged();
 }
 
 #endif
@@ -587,16 +572,14 @@ void Sample::fadeIn(u32 startsample, u32 endsample)
 {
 	fade(startsample, endsample, true);
 
-	if(loop == PING_PONG_LOOP)
-		updatePingPongLoop();
+	onSampleDataChanged();
 }
 
 void Sample::fadeOut(u32 startsample, u32 endsample)
 {
 	fade(startsample, endsample, false);
 
-	if( loop == PING_PONG_LOOP )
-		updatePingPongLoop();
+	onSampleDataChanged();
 }
 
 bool Sample::reverse(u32 startsample, u32 endsample)
@@ -646,11 +629,7 @@ bool Sample::reverse(u32 startsample, u32 endsample)
 		ntxm_free(new_sounddata);
 	}
 
-	// Now everything's clear and we set the variables right
-	calcSize();
-
-	if( loop == PING_PONG_LOOP )
-		updatePingPongLoop();
+	onSampleDataChanged();
 
 	return true;
 }
@@ -687,8 +666,7 @@ void Sample::normalize(u16 percent, u32 startsample, u32 endsample)
 		}
 	}
 
-	if( loop == PING_PONG_LOOP )
-		updatePingPongLoop();
+	onSampleDataChanged();
 }
 
 void Sample::drawLine(int x1, int y1, int x2, int y2)
@@ -752,8 +730,7 @@ void Sample::drawLine(int x1, int y1, int x2, int y2)
 		}
 	}
 
-	if( loop == PING_PONG_LOOP )
-			updatePingPongLoop();
+	onSampleDataChanged();
 }
 
 #endif
@@ -917,31 +894,22 @@ void Sample::fade(u32 startsample, u32 endsample, bool in)
 		}
 	}
 
-	// Now everything's clear and we set the variables right
-	calcSize();
-
-	if( loop == PING_PONG_LOOP )
-		updatePingPongLoop();
+	onSampleDataChanged();
 }
 
 bool Sample::setupPingPongLoop(void)
 {
-	original_data = sound_data; // "Backup"
-	original_n_samples = n_samples;
-
-	u32 original_size = size;
-
-	pingpong_data = ntxm_umalloc(original_size + loop_length);
+	pingpong_data = ntxm_umalloc(size + loop_length);
 	if (!pingpong_data)
 		return false;
 
 	// Copy sound data until loop end
-	memcpy(pingpong_data, original_data, loop_start + loop_length);
+	memcpy(pingpong_data, sound_data, loop_start + loop_length);
 
 	// Copy reverse loop
 	if(is_16_bit)
 	{
-		s16 *orig = (s16*)original_data;
+		s16 *orig = (s16*)sound_data;
 		s16 *pp = (s16*)pingpong_data;
 		u32 pos = (loop_start + loop_length) / 2;
 
@@ -950,7 +918,7 @@ bool Sample::setupPingPongLoop(void)
 	}
 	else
 	{
-		s8 *orig = (s8*)original_data;
+		s8 *orig = (s8*)sound_data;
 		s8 *pp = (s8*)pingpong_data;
 		u32 pos = loop_start + loop_length;
 
@@ -961,17 +929,7 @@ bool Sample::setupPingPongLoop(void)
 	// Copy rest
 	u32 pos = loop_start + loop_length;
 
-	memcpy((u8*)pingpong_data+ pos + loop_length, (u8*)original_data + pos, original_size - pos);
-
-	// Set as new sound data
-	sound_data = pingpong_data;
-
-	if(is_16_bit)
-		n_samples = (original_size + loop_length) / 2;
-	else
-		n_samples = original_size + loop_length;
-
-	calcSize();
+	memcpy((u8*)pingpong_data + pos + loop_length, (u8*)sound_data + pos, size - pos);
 
 	DC_FlushAll();
 	return true;
@@ -984,20 +942,19 @@ void Sample::removePingPongLoop(void)
 		ntxm_free(pingpong_data);
 		pingpong_data = 0;
 	}
-
-	sound_data = original_data;
-	n_samples = original_n_samples;
-
-	calcSize();
-
-	DC_FlushAll();
 }
 
-bool Sample::updatePingPongLoop(void)
+bool Sample::onSampleDataChanged(void)
 {
 	if(pingpong_data)
 		removePingPongLoop();
-	return setupPingPongLoop();
+
+	calcSize();
+		
+	if(loop == PING_PONG_LOOP)
+		if(!setupPingPongLoop())
+			return false;
+	return true;
 }
 
 #endif

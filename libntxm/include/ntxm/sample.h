@@ -124,13 +124,11 @@ class Sample
 
 		bool setupPingPongLoop(void);
 		void removePingPongLoop(void);
-		bool updatePingPongLoop(void);
+		bool onSampleDataChanged(void);
 
 		void *sound_data;
-		void *original_data;
 		void *pingpong_data;
 		u32 n_samples;
-		u32 original_n_samples;
 		bool is_16_bit;
 		u8 loop;
 		s8 rel_note;		// Offset in the frequency table from base note
