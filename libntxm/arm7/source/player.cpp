@@ -384,7 +384,7 @@ void Player::playTimerHandler(void)
 	}
 
 	// Update active channels
-	for(u8 channel=0; channel<song->n_channels && channel<MAX_CHANNELS; ++channel)
+	for(u8 channel=0; channel<MAX_CHANNELS; ++channel)
 	{
 		if(state.channel_ms_left[channel] > 0)
 		{
