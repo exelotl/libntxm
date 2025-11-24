@@ -219,6 +219,8 @@ class Song {
 		// Zapping
 		void zapPatterns(void);
 		void zapInstruments(void);
+		void zapInstrument(u8 inst);
+		void zapUnusedInstruments(bool *used_insts);
 		
 		void clearCell(Cell *cell);
 		

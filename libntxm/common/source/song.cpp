@@ -41,6 +41,7 @@
 #include "ntxm/ntxmtools.h"
 #include "ntxm/fifocommand.h"
 
+
 /*
 A word on pattern memory management:
 a pattern is a 3d-array. The dimensions are
@@ -171,6 +172,36 @@ u8 Song::getInstruments(void)
 void Song::setInstrument(u8 idx, Instrument *instrument) {
 	instruments[idx] = instrument;
 	DC_FlushAll();
+}
+
+void Song::zapInstrument(u8 inst) {
+	if (instruments[inst] != NULL) {
+		delete instruments[inst];
+		instruments[inst] = NULL;
+	}
+}
+
+// return number of unused insts
+void Song::zapUnusedInstruments(bool *used_insts) {
+	u8 n_chn = getChannels();
+	u8 n_pat = getNumPatterns();
+
+	for (int ptn = 0; ptn < n_pat; ++ptn) {
+		Cell **p = getPattern(ptn);
+		u16 p_len = getPatternLength(ptn);
+
+		for (int row = 0; row < p_len; ++row)
+			for (int col = 0; col < n_chn; ++col) {
+				Cell thisCell = p[col][row];
+				u8 inst = thisCell.instrument;
+				if (inst != NO_INSTRUMENT)
+					used_insts[inst] = true;
+			}
+	}
+
+	for (u8 i = 0; i < MAX_INSTRUMENTS; ++i)
+		if (used_insts[i])
+			zapInstrument(i);
 }
 
 // POT functions
