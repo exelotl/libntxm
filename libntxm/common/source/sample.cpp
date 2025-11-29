@@ -622,6 +622,42 @@ bool Sample::reverse(u32 startsample, u32 endsample)
 	return true;
 }
 
+u32 Sample::getDynamicRange(void)
+{
+	if (is_16_bit == true)
+		return 0xffff + 1;
+	else
+		return 0xff + 1;
+}
+
+u32 Sample::getMaxAmplitude(u32 startsample, u32 endsample)
+{
+	void *data = getData();
+	u32 max_smp = 0;
+	u32 dr = getDynamicRange() / 2;
+
+	if(is_16_bit == true)
+	{
+		s16 *sounddata = (s16*)(data);
+
+		for(u32 i=startsample;i<endsample;++i) {
+			u32 ampl = abs((s32)sounddata[i]);
+			max_smp = MAX(ampl, max_smp);
+			if (ampl == dr) return dr;
+		}
+
+	} else {
+		s8 *sounddata = (s8*)(data);
+
+		for(u32 i=startsample;i<endsample;++i) {
+			u32 ampl = abs((s32)sounddata[i]);
+			max_smp = MAX(ampl, max_smp);
+			if (ampl == dr) return dr;
+		}
+	}
+
+	return max_smp;
+}
 
 void Sample::normalize(u16 percent, u32 startsample, u32 endsample)
 {
