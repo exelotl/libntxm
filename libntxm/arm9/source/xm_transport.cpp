@@ -65,9 +65,6 @@ const char *xmtransporterrors[] =
 // returns 0 on success, an error code else
 u16 XMTransport::load(const char *filename, Song **_song)
 {
-	//
-	// Init
-	//
 	u32 filesize = ntxm_getFileSize(filename);
 	if(filesize == 0)
 	{
@@ -148,9 +145,9 @@ u16 XMTransport::load(const char *filename, Song **_song)
 	fread(&n_channels, 2, 1, xmfile);
 	//ntxm_dprintf("n chn: %u\n", n_channels);
 
-	if(n_channels>16) {
-		//ntxm_dprintf("I currently only support XMs with 16 or less channels!\n");
-		//return 0;
+	if(n_channels > MAX_CHANNELS) {
+		ntxm_dprintf("I only support XMs with 16 or fewer channels!\n");
+		return XM_TRANSPORT_TOO_MANY_CHANNELS;
 	}
 
 	// Number of patterns

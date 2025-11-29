@@ -46,6 +46,7 @@
 #define XM_TRANSPORT_FILE_ZERO_BYTE				9
 #define XM_TRANSPORT_DISK_FULL					10
 #define XM_TRANSPORT_MPT_HACKS_UNSUPPORTED		11
+#define XM_TRANSPORT_TOO_MANY_CHANNELS          12
 
 // This class implements loading from and saving to the XM file format
 // introduced by Fasttracker II. Man, those were the days!
