@@ -58,6 +58,12 @@ Wav::~Wav() {
 
 }
 
+#define FOURCC_RIFF 0x46464952
+#define FOURCC_WAVE 0x45564157
+#define FOURCC_fmt 0x20746D66
+#define FOURCC_data 0x61746164
+#define FOURCC_smpl 0x6C706D73
+
 bool Wav::load(const char *filename)
 {
 #if defined(ARM9)
@@ -70,12 +76,11 @@ bool Wav::load(const char *filename)
 	if(!fileh)
 		return false;
 
-	char buf[5] = {0};
+	u32 cc;
 
 	// RIFF header
-	fread(buf, 1, 4, fileh);
-
-	if(strcmp(buf,"RIFF")!=0) {
+	fread(&cc, 4, 1, fileh);
+	if(cc != FOURCC_RIFF) {
 		fclose(fileh);
 		return false;
 	}
@@ -84,15 +89,15 @@ bool Wav::load(const char *filename)
 	fread(&riff_size, 4, 1, fileh);
 
 	// WAVE header
-	fread(buf, 1, 4, fileh);
-	if(strcmp(buf,"WAVE")!=0) {
+	fread(&cc, 4, 1, fileh);
+	if(cc != FOURCC_WAVE) {
 		fclose(fileh);
 		return false;
 	}
 
 	// fmt chunk
-	fread(buf, 1, 4, fileh);
-	if(strcmp(buf,"fmt ")!=0) {
+	fread(&cc, 4, 1, fileh);
+	if(cc != FOURCC_fmt) {
 		fclose(fileh);
 		return false;
 	}
@@ -103,12 +108,10 @@ bool Wav::load(const char *filename)
 	u16 compression_code;
 	fread(&compression_code, 2, 1, fileh);
 
-	// 1 : pcm, 17 : ima adpcm
-	if(compression_code == 1) {
+	if(compression_code == 1 || compression_code == 0xFFFE) {
+		// 1 = PCM, 0xFFFE = extensible
 		compression_ = CMP_PCM;
-	} /*else if(compression_code == 17) {
-		compression_ = CMP_ADPCM;
-	}*/ else {
+	} else {
 		fclose(fileh);
 		return false;
 	}
@@ -136,8 +139,8 @@ bool Wav::load(const char *filename)
 
 	u16 bit_per_sample;
 	fread(&bit_per_sample, 2, 1, fileh);
-	if((bit_per_sample==8)||(bit_per_sample==16)) {
-		bit_per_sample_ = bit_per_sample;
+	if(!(bit_per_sample & 7) && bit_per_sample >= 8) {
+		bit_per_sample_ = bit_per_sample > 16 ? 16 : bit_per_sample;
 	} else {
 		fclose(fileh);
 		return false;
@@ -147,7 +150,7 @@ bool Wav::load(const char *filename)
 	fseek(fileh, fmt_chunk_size - 16, SEEK_CUR);
 
 	audio_data_ = NULL;
-	u8 sample_size = bit_per_sample_/8;
+	int sample_size = bit_per_sample/8;
 
 	loop_type_ = 0;
 
@@ -156,7 +159,7 @@ bool Wav::load(const char *filename)
 			break;
 
 		u32 chunk_size;
-		if (fread(buf, 4, 1, fileh) <= 0)
+		if (fread(&cc, 4, 1, fileh) <= 0)
 			break;
 		if (fread(&chunk_size, 4, 1, fileh) <= 0)
 			break;
@@ -164,7 +167,7 @@ bool Wav::load(const char *filename)
 		u32 chunk_pos = ftell(fileh);
 		u32 loop_id, loop_type = 0, loop_start, loop_end;
 
-		if(!strcmp(buf, "data")) {
+		if(cc == FOURCC_data) {
 			if(compression_ == CMP_PCM) {
 				n_samples_ = chunk_size / sample_size;
 			} else {
@@ -179,8 +182,24 @@ bool Wav::load(const char *filename)
 			}
 
 			// Read the data
-			memset(audio_data_, 0, chunk_size);
-			fread(audio_data_, chunk_size, 1, fileh);
+			if(bit_per_sample > bit_per_sample_) {
+				int skip_bytes = (bit_per_sample - bit_per_sample_) / 8;
+				u32 i = 0;
+				for(; i < n_samples_; i++) {
+					fseek(fileh, skip_bytes, SEEK_CUR);
+					if(fread(audio_data_ + i * 2, 2, 1, fileh) <= 0) {
+						break;
+					}
+				}
+				if(i < n_samples_) {
+					memset(audio_data_ + i * 2, 0, chunk_size - i * 2);
+				}
+			} else {
+				size_t bytes_read = fread(audio_data_, 1, chunk_size, fileh);
+				if (bytes_read < chunk_size) {
+					memset(audio_data_ + bytes_read, 0, chunk_size - bytes_read);
+				}
+			}
 
 			// Convert 8 bit samples from unsigned to signed
 			if(bit_per_sample == 8) {
@@ -189,7 +208,7 @@ bool Wav::load(const char *filename)
 
 			// Read everything, so continue
 			continue;
-		} else if (!strcmp(buf, "smpl")) {
+		} else if (cc == FOURCC_smpl) {
 			u32 loop_count;
 
 			fseek(fileh, 0x24 - 0x08, SEEK_CUR);
